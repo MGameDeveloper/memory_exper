@@ -14,15 +14,21 @@ static Memory_s GMemory, GFreeMemory;
 
 bool mem_init(uint32_t InSize)
 {
+	if (GMemory.Address)
+	{
+		printf("Memory already initialized with size: %d BYTE\n", GMemory.Size);
+		return false;
+	}
+
 	if (InSize < MEM_SIZE_KB(1))
 	{
 		printf("mem_init( %d ). Provided size should be at least 1KB or greater.", InSize);
 		return false;
 	}
 
-	GMemory.Size = InSize;
-	GMemory.Address = (uint8_t*)malloc(InSize);
-	GFreeMemory.Size = GMemory.Size;
+	GMemory.Size        = InSize;
+	GMemory.Address     = (uint8_t*)malloc(InSize);
+	GFreeMemory.Size    = GMemory.Size;
 	GFreeMemory.Address = GMemory.Address;
 
 	if (!GFreeMemory.Address)
@@ -59,16 +65,18 @@ struct memblkdef
 	uint8_t*   data = nullptr;
 	uint32_t   size = 0;
 };
-static memblkdef* freeblks = nullptr;
-static memblkdef *usedblks = nullptr;
+
+struct memblklist
+{
+	memblkdef* head = nullptr;
+	memblkdef* tail = nullptr;
+};
 
 struct memalloctrackerdef
 {
 	uint32_t alloccount = 0;
 	uint32_t freecount = 0;
 };
-static memalloctrackerdef memalloctracker;
-
 
 
 /*****************************************************
@@ -83,9 +91,7 @@ uint32_t str_size(const char* str)
 	return len;
 }
 
-#define D_REFERENCE(in_ptr) (*in_ptr)
-
-void detach_blk(memblkdef* blk, memblkdef** list)
+void detach_blk(memblkdef* blk, memblklist* list)
 {
 	if (blk->next && blk->prev)
 	{
@@ -94,29 +100,34 @@ void detach_blk(memblkdef* blk, memblkdef** list)
 	}
 	else if (blk->next && !blk->prev)
 	{
-		D_REFERENCE(list) = blk->next;
-		blk->next->prev   = nullptr;
+		list->head        = blk->next;
+		list->head->prev  = nullptr;
 		blk->next         = nullptr;
 	}
 	else if (!blk->next && blk->prev)
 	{
-		blk->prev->next = nullptr;
-		blk->prev       = nullptr;
+		list->tail       = blk->prev;
+		list->tail->next = nullptr;
+		blk->prev        = nullptr;
 	}
 }
 
-void attach_blk(memblkdef* blk, memblkdef** list)
+void attach_blk(memblkdef* blk, memblklist* list)
 {
-	if (!D_REFERENCE(list))
+	if (!list->head)
 	{
-		D_REFERENCE(list) = blk;
-		return;
+		list->head = blk;
+		list->tail = blk;
+		blk->prev  = list->head;
+		blk->next  = nullptr;
 	}
-
-	D_REFERENCE(list)->prev = blk;
-	blk->next               = D_REFERENCE(list);
-	blk->prev               = nullptr;
-	D_REFERENCE(list)       = blk;
+	else
+	{
+		list->tail->next = blk;
+		blk->prev        = list->tail;
+		list->tail       = blk;
+		blk->next        = nullptr;
+	}
 }
 
 void merge_blk(memblkdef* blk, memblkdef* nextblk)
@@ -157,11 +168,13 @@ void link_subblk_after(memblkdef* blk, memblkdef* subblk)
 	blk->next    = subblk;
 }
 
-#undef D_REFERENCE
 
 /*****************************************************
 * END: HELPER FUNCTIONS
 *****************************************************/
+static memblklist         freeblks;
+static memblklist         usedblks;
+static memalloctrackerdef memalloctracker;
 
 
 void* mem_alloc(const char* Name, uint32_t InSize)
@@ -181,23 +194,20 @@ void* mem_alloc(const char* Name, uint32_t InSize)
 		blk->data = GFreeMemory.Address + blkheadersize;
 		blk->size = InSize;
 		
-		if (!usedblks)
-			usedblks = blk;
-		else
-			attach_blk(blk, &usedblks);
+		attach_blk(blk, &usedblks);
 
 		GFreeMemory.Address = blk->data + InSize;
 		GFreeMemory.Size = GFreeMemory.Size - entireblksize;
 	}
-	else if (freeblks)
+	else if (freeblks.head)
 	{
-		for (blk = freeblks; blk; blk = blk->next)
+		for (blk = freeblks.head; blk; blk = blk->next)
 		{
 			if (blk->size == InSize)
 			{
 				break;
 			}
-			else if (blk->size > InSize)
+			else if (blk->size > (sizeof(memblkdef) + InSize))
 			{
 				// NOTE: Note Tested Yet
 
@@ -234,7 +244,7 @@ void* mem_alloc(const char* Name, uint32_t InSize)
 
 			// Note: Note tested yet
 
-			blk = freeblks;
+			blk                = freeblks.head;
 			memblkdef* nextblk = nullptr;
 
 			uint32_t blksize     = blk->size;
@@ -284,16 +294,48 @@ void* mem_alloc(const char* Name, uint32_t InSize)
 	return blk->data;
 }
 
-void mem_free_name(const char* Name)
-{
-	memblkdef* blk = usedblks;
 
-	for (; blk; blk = blk->next)
-		if (strcmp(blk->name, Name) == 0)
+//void mem_free_name(const char* Name)
+//{
+//	memblkdef* blk = usedblks.head;
+//
+//	for (; blk; blk = blk->next)
+//		if (strcmp(blk->name, Name) == 0)
+//			break;
+//
+//	if (blk)
+//	{
+//		static const char* name = "EmptyBlock";
+//		memcpy(blk->name, name, str_size(name));
+//		memset(blk->data, 0, blk->size);
+//
+//		detach_blk(blk, &usedblks);
+//		attach_blk(blk, &freeblks);
+//
+//		memalloctracker.freecount++;
+//	}
+//}
+
+// need test
+void mem_free(void** InPtr)
+{
+	if (!InPtr || !(*InPtr)) return;
+
+	memblkdef* blk = usedblks.head;
+
+	for (; blk ; blk = blk->next)
+		if (blk->data == *InPtr)
 			break;
 
 	if (blk)
 	{
+		//================= STEPS ====================
+		// --> Mark the block to be empty blok
+		// --> Clear the block data
+		// --> Detach The Block From Used Blocks
+		// --> Attach The Block To Freed Blocks
+		// --> Increase DeAllocation Counter
+
 		static const char* name = "EmptyBlock";
 		memcpy(blk->name, name, str_size(name));
 		memset(blk->data, 0, blk->size);
@@ -302,42 +344,8 @@ void mem_free_name(const char* Name)
 		attach_blk(blk, &freeblks);
 
 		memalloctracker.freecount++;
-	}
-}
 
-// need test
-void mem_free(void** InPtr)
-{
-	if (!InPtr || !(*InPtr)) return;
-
-	memblkdef* blk = usedblks;
-
-	for (; blk != nullptr; blk = blk->next)
-		if (blk->data == *InPtr)
-			break;
-
-	if (blk)
-	{
-		//================= STEPS ====================
-		// --> Detach The Block From Used Blocks
-		// --> Attach The Block To Freed Blocks
-		// --> Clear the Previouse Data Of The Block
-		// --> Increase DeAllocation Counter
-
-
-		// Detach from Used Block
-		detach_blk(blk, &usedblks);
-
-
-		// Attach to FreeBlock
-		attach_blk(blk, &freeblks);
-
-		// Clear its data
-		// we may not need this since it will be overwritten in the next allocation
-		//memset(Block->Data, 0, Block->Size);
-
-		// Increase DeAllocation Count
-		memalloctracker.freecount++;
+		(*InPtr) = nullptr;
 	}
 }
 
@@ -355,11 +363,11 @@ void mem_display_info()
 	uint32_t UsedMemorySize = 0;
 	uint32_t FreeMemorySize = GFreeMemory.Size;
 
-	memblkdef* blk = usedblks;
+	memblkdef* blk = usedblks.head;
 	for (; blk; blk = blk->next)
 		UsedMemorySize = UsedMemorySize + blk->size + sizeof(memblkdef);
 
-	blk = freeblks;
+	blk = freeblks.head;
 	for (; blk; blk = blk->next)
 		FreeMemorySize = FreeMemorySize + blk->size + sizeof(memblkdef);
 
@@ -373,14 +381,14 @@ void mem_display_info()
 	printf("- FREE COUNT:   %d\n", memalloctracker.freecount);
 
 	printf("\n[ USED MEMORY INFO ]\n");
-	blk = usedblks;
+	blk = usedblks.head;
 	uint32_t i = 0;
 	for (; blk; ++i, blk = blk->next)
 		printf("\t%d -> [ %s ][ %d BYTE ][ %p ]\n", i, blk->name, blk->size, &(*blk->data));
 	
 
 	printf("\n[ FREED MEMORY INFO ]\n");
-	blk = freeblks;
+	blk = freeblks.head;
 	i = 0;
 	for (; blk; ++i, blk = blk->next)
 		printf("\t%d -> [ %s ][ %d BYTE ][ %p ]\n", i, blk->name, blk->size, &(*blk->data));
@@ -392,7 +400,7 @@ void mem_display_info()
 
 void* mem_get(const char* Name)
 {
-	memblkdef* blk = usedblks;
+	memblkdef* blk = usedblks.head;
 
 	for (; blk; blk = blk->next)
 		if (strcmp(blk->name, Name) == 0)
