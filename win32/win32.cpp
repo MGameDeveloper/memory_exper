@@ -1,11 +1,6 @@
 #include "win32.h"
-#include "keys.h"
 
-#include <stdio.h>
-#include <stdint.h>
-
-#include "../utils/Memory.h"
-#include "../utils/Containers/Array.h"
+#include "../common.h"
 
 #define VK_A 0x41
 #define VK_B 0x42
@@ -59,7 +54,7 @@ bool win32_keymap_init()
 	MAP_KEY(VK_LBUTTON, ek_lmouse);
 	MAP_KEY(VK_RBUTTON, ek_rmouse);
 	MAP_KEY(VK_MBUTTON, ek_mmouse);
-
+	
 	MAP_KEY(VK_A, ek_a);
 	MAP_KEY(VK_B, ek_b);
 	MAP_KEY(VK_C, ek_c);
@@ -86,7 +81,6 @@ bool win32_keymap_init()
 	MAP_KEY(VK_X, ek_x);
 	MAP_KEY(VK_Y, ek_y);
 	MAP_KEY(VK_Z, ek_z);
-
 	MAP_KEY(VK_0, ek_0);
 	MAP_KEY(VK_1, ek_1);
 	MAP_KEY(VK_2, ek_2);
@@ -109,24 +103,57 @@ bool win32_keymap_init()
 	MAP_KEY(VK_NUMPAD8, ek_numpad8);
 	MAP_KEY(VK_NUMPAD9, ek_numpad9);
 
-	MAP_KEY(VK_F1, ek_f1);
-	MAP_KEY(VK_F2, ek_f2);
-	MAP_KEY(VK_F3, ek_f3);
-	MAP_KEY(VK_F4, ek_f4);
-	MAP_KEY(VK_F5, ek_f5);
-	MAP_KEY(VK_F6, ek_f6);
-	MAP_KEY(VK_F7, ek_f7);
-	MAP_KEY(VK_F8, ek_f8);
-	MAP_KEY(VK_F9, ek_f9);
+	MAP_KEY(VK_F1,  ek_f1);
+	MAP_KEY(VK_F2,  ek_f2);
+	MAP_KEY(VK_F3,  ek_f3);
+	MAP_KEY(VK_F4,  ek_f4);
+	MAP_KEY(VK_F5,  ek_f5);
+	MAP_KEY(VK_F6,  ek_f6);
+	MAP_KEY(VK_F7,  ek_f7);
+	MAP_KEY(VK_F8,  ek_f8);
+	MAP_KEY(VK_F9,  ek_f9);
 	MAP_KEY(VK_F10, ek_f10);
 	MAP_KEY(VK_F11, ek_f11);
 	MAP_KEY(VK_F12, ek_f12);
 
-	MAP_KEY(VK_UP, ek_up);
-	MAP_KEY(VK_DOWN, ek_down);
-	MAP_KEY(VK_LEFT, ek_left);
+	MAP_KEY(VK_UP,    ek_up);
+	MAP_KEY(VK_DOWN,  ek_down);
+	MAP_KEY(VK_LEFT,  ek_left);
 	MAP_KEY(VK_RIGHT, ek_right);
 	
+	MAP_KEY(VK_RETURN,  ek_enter);
+	MAP_KEY(VK_ESCAPE,  ek_esc);
+	MAP_KEY(VK_SPACE,   ek_space);
+	MAP_KEY(VK_BACK,    ek_backspace);
+	MAP_KEY(VK_DELETE,  ek_delete);
+	MAP_KEY(VK_INSERT,  ek_insert);
+	MAP_KEY(VK_TAB,     ek_tab);
+	MAP_KEY(VK_CAPITAL, ek_capslock);
+	MAP_KEY(VK_NUMLOCK, ek_numlock);
+	MAP_KEY(VK_PRIOR,   ek_pageup);
+	MAP_KEY(VK_NEXT,    ek_pagedown);
+	MAP_KEY(VK_END,     ek_end);
+	MAP_KEY(VK_HOME,    ek_home);
+	MAP_KEY(VK_DECIMAL, ek_decimal);
+
+	MAP_KEY(VK_OEM_1,      ek_semicolon);
+	MAP_KEY(VK_OEM_2,      ek_slash);
+	MAP_KEY(VK_OEM_3,      ek_tilde);
+	MAP_KEY(VK_OEM_4,      ek_left_bracket);
+	MAP_KEY(VK_OEM_5,      ek_backslash);
+	MAP_KEY(VK_OEM_6,      ek_right_bracket);
+	MAP_KEY(VK_OEM_7,      ek_quote);
+	MAP_KEY(VK_OEM_MINUS,  ek_hyphen);
+	MAP_KEY(VK_OEM_PERIOD, ek_period);
+	MAP_KEY(VK_OEM_PLUS,   ek_equals);
+	MAP_KEY(VK_OEM_COMMA,  ek_comma);
+
+	MAP_KEY(VK_MULTIPLY, ek_multiply);
+	MAP_KEY(VK_SUBTRACT, ek_subtract);
+	MAP_KEY(VK_ADD,      ek_add);
+	MAP_KEY(VK_DIVIDE,   ek_divide);
+	MAP_KEY(VK_E,        ek_equals);
+
 #undef MAP_KEY
 
 	return true;
@@ -202,27 +229,27 @@ bool win32_init()
 		return false;
 	}
 
-	win32data.hinstance = GetModuleHandle(NULL);
+	win32data.hinstance      = GetModuleHandle(NULL);
 	win32data.wnd_class_name = L"main_window";
-	win32data.wnd_title = L"MGameDev";
-	win32data.x = CW_USEDEFAULT;
-	win32data.y = CW_USEDEFAULT;
-	win32data.w = CW_USEDEFAULT;
-	win32data.h = CW_USEDEFAULT;
-	win32data.quit = false;
+	win32data.wnd_title      = L"MGameDev";
+	win32data.x              = CW_USEDEFAULT;
+	win32data.y              = CW_USEDEFAULT;
+	win32data.w              = CW_USEDEFAULT;
+	win32data.h              = CW_USEDEFAULT;
+	win32data.quit           = false;
 
 	WNDCLASS wc;
 	memset(&wc, 0, sizeof(WNDCLASS));
 
-	wc.lpfnWndProc = WndProc;
+	wc.lpfnWndProc   = WndProc;
 	wc.lpszClassName = win32data.wnd_class_name;
-	wc.hInstance = win32data.hinstance;
-	wc.style = CS_DBLCLKS;
+	wc.hInstance     = win32data.hinstance;
+	wc.style         = CS_DBLCLKS;
 
 	RegisterClass(&wc);
 
-	win32data.hwnd = CreateWindow(win32data.wnd_class_name, 
-		win32data.wnd_title, WS_OVERLAPPEDWINDOW, win32data.x, win32data.y, win32data.w, win32data.h, NULL, NULL, win32data.hinstance, NULL);
+	win32data.hwnd = 
+		CreateWindow(win32data.wnd_class_name, win32data.wnd_title, WS_OVERLAPPEDWINDOW, win32data.x, win32data.y, win32data.w, win32data.h, NULL, NULL, win32data.hinstance, NULL);
 
 	if (!win32data.hwnd)
 		return false;

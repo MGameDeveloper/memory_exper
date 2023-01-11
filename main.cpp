@@ -1,9 +1,7 @@
-#include <stdio.h>
 
 #include "platform.h"
 
-#include "utils/Memory.h"
-#include "utils/Containers/Stack.h"
+#include "common.h"
 
 int main()
 {
@@ -14,6 +12,8 @@ int main()
 	}
 
 	// engine initialization here
+
+	mem_display_info();
 
 	while (!platform_closing())
 	{

@@ -127,12 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="common.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="utils\Containers\Array.h" />
     <ClInclude Include="utils\Containers\Queue.h" />
     <ClInclude Include="utils\Containers\Stack.h" />
     <ClInclude Include="utils\Memory.h" />
-    <ClInclude Include="win32\keys.h" />
+    <ClInclude Include="keys.h" />
     <ClInclude Include="win32\win32.h" />
   </ItemGroup>
   <ItemGroup>

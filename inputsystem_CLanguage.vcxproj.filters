@@ -21,7 +21,7 @@
     <ClInclude Include="win32\win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="win32\keys.h">
+    <ClInclude Include="keys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\Containers\Array.h">
@@ -34,6 +34,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\Memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
