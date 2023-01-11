@@ -13,8 +13,6 @@ int main()
 
 	// engine initialization here
 
-	mem_display_info();
-
 	while (!platform_closing())
 	{
 		platform_run();
