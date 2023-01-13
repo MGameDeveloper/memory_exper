@@ -9,6 +9,13 @@ bool platform_init()
 #endif
 }
 
+bool platform_deinit()
+{
+#ifdef WIN32
+	return win32_deinit();
+#endif
+}
+
 void platform_run()
 {
 #ifdef WIN32

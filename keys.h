@@ -1,5 +1,28 @@
 #pragma once
 
+enum ekeystate
+{
+	keystate_unknown = -1,
+
+	keystate_released,
+	keystate_pressed,
+	keystate_repeated,
+	keystate_doubleclick,
+
+	count
+};
+
+enum emodkeys
+{
+	emodey_unknown = -1,
+	
+    emodkey_shift = 1 << 0,
+	emodkey_alt   = 1 << 1,
+	emodkey_ctrl  = 1 << 2,
+
+	emodkey_count
+};
+
 enum ekeys
 {
 	ek_unknown = -1,

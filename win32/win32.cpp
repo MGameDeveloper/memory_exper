@@ -42,7 +42,7 @@
 
 bool win32_keymap_init()
 {
-	Array* keymap = (Array*)array_create("array_keymap", 256, sizeof(uint8_t));
+	Array* keymap = (Array*)array_create("array_keymap", 256, sizeof(int16_t));
 
 	if (!keymap)
 		return false;
@@ -159,8 +159,29 @@ bool win32_keymap_init()
 	return true;
 }
 
+int16_t keymap_get(uint16_t in_virtual_key)
+{
+	static Array* keymap = (Array*)mem_get("array_keymap");
+
+	if (!keymap)
+	{
+		printf("win32.cpp: keymap_get(%d) failed to get [ array_keymap ] from memory\n", in_virtual_key);
+		return ek_unknown;
+	}
+	
+	if (in_virtual_key > 255 || in_virtual_key < 0)
+	{
+		printf("unknown key: %d\n", in_virtual_key);
+		return ek_unknown;
+	}
+
+	return *( (int16_t*)array_get(keymap, in_virtual_key) );
+}
+
 LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 {
+	event_key event;
+
 	switch (InMsg)
 	{
 	case WM_DESTROY:
@@ -173,12 +194,31 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 	{
-		WORD vKeyCode = (WORD)InWParam;
+		//WORD vKeyCode = (WORD)InWParam;
 		WORD KeyFlags = HIWORD(InLParam);
 
-		bool IsRepeated = (KeyFlags & KF_REPEAT) == KF_REPEAT;
-		bool IsReleased = (KeyFlags & KF_UP) == KF_UP;
-		float TimeStamp = 0.0f;
+		bool is_repeated = (KeyFlags & KF_REPEAT) == KF_REPEAT;
+		bool is_released = (KeyFlags & KF_UP) == KF_UP;
+
+		event.devicetype = inputdevice_kboard;
+		event.key        = keymap_get(InWParam);
+		
+		ekeystate keystate = keystate_unknown;
+		switch (is_repeated)
+		{
+		case 0:
+			keystate = keystate_pressed;
+			break;
+
+		case 1:
+			keystate = keystate_repeated;
+			break;
+
+		default:
+			keystate = keystate_released;
+		}
+		event.state     = keystate;
+		event.timestamp = 0.0;
 	}
 	break;
 
@@ -203,6 +243,10 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 	case WM_DEVICECHANGE:
 		break;
 	}
+
+	if(event.devicetype != inputdevice_unknown)
+		event_add(&event);
+
 	return DefWindowProc(InHwnd, InMsg, InWParam, InLParam);
 };
 
@@ -226,6 +270,12 @@ bool win32_init()
 	if (!mem_init(MEM_SIZE_MB(2)))
 	{
 		printf("memory initialization failed.\n");
+		return false;
+	}
+
+	if (!event_init())
+	{
+		printf("event system initialization failed.\n");
 		return false;
 	}
 
@@ -263,6 +313,13 @@ bool win32_init()
 		return false;
 	}
 	printf("win32 platform initialized.\n");
+
+	return true;
+}
+
+bool win32_deinit()
+{
+	mem_deinit();
 
 	return true;
 }

@@ -11,6 +11,7 @@
 #define MEM_SIZE_TB(V) (MEM_SIZE_GB(V) * 1024LL)
 
 extern bool  mem_init(uint32_t InSize);
+extern bool  mem_deinit();
 extern void* mem_alloc(const char* Name, uint32_t InSize);
 extern void* mem_get(const char* Name);
 extern void  mem_free(void** InPtr);

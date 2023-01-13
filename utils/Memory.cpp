@@ -411,3 +411,21 @@ void* mem_get(const char* Name)
 
 	return blk->data;
 }
+
+
+// not working need fix
+extern bool mem_deinit()
+{
+	memblkdef *blk = usedblks.head;
+	
+	if (blk)
+		for (; blk; blk = blk->next)
+			mem_free(mem_ptr(blk->data));
+
+	mem_display_info();
+
+	if (GMemory.Address)
+		free(GMemory.Address);
+
+	return true;
+}
