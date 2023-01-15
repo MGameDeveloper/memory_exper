@@ -1,6 +1,10 @@
 #include "win32.h"
 
-#include "../common.h"
+#include <stdio.h>
+#include "../utils/Memory.h"
+#include "../utils/Containers/Array.h"
+#include "../core/event/event.h"
+#include "../keys.h"
 
 #define VK_A 0x41
 #define VK_B 0x42
@@ -55,42 +59,42 @@ bool win32_keymap_init()
 	MAP_KEY(VK_RBUTTON, ek_rmouse);
 	MAP_KEY(VK_MBUTTON, ek_mmouse);
 	
-	MAP_KEY(VK_A, ek_a);
-	MAP_KEY(VK_B, ek_b);
-	MAP_KEY(VK_C, ek_c);
-	MAP_KEY(VK_D, ek_d);
-	MAP_KEY(VK_E, ek_e);
-	MAP_KEY(VK_F, ek_f);
-	MAP_KEY(VK_G, ek_g);
-	MAP_KEY(VK_H, ek_h);
-	MAP_KEY(VK_I, ek_i);
-	MAP_KEY(VK_J, ek_j);
-	MAP_KEY(VK_K, ek_k);
-	MAP_KEY(VK_L, ek_l);
-	MAP_KEY(VK_M, ek_m);
-	MAP_KEY(VK_N, ek_n);
-	MAP_KEY(VK_O, ek_o);
-	MAP_KEY(VK_P, ek_p);
-	MAP_KEY(VK_Q, ek_q);
-	MAP_KEY(VK_R, ek_r);
-	MAP_KEY(VK_S, ek_s);
-	MAP_KEY(VK_T, ek_t);
-	MAP_KEY(VK_U, ek_u);
-	MAP_KEY(VK_V, ek_v);
-	MAP_KEY(VK_W, ek_w);
-	MAP_KEY(VK_X, ek_x);
-	MAP_KEY(VK_Y, ek_y);
-	MAP_KEY(VK_Z, ek_z);
-	MAP_KEY(VK_0, ek_0);
-	MAP_KEY(VK_1, ek_1);
-	MAP_KEY(VK_2, ek_2);
-	MAP_KEY(VK_3, ek_3);
-	MAP_KEY(VK_4, ek_4);
-	MAP_KEY(VK_5, ek_5);
-	MAP_KEY(VK_6, ek_6);
-	MAP_KEY(VK_7, ek_7);
-	MAP_KEY(VK_8, ek_8);
-	MAP_KEY(VK_9, ek_9);
+	MAP_KEY('A', ek_a);
+	MAP_KEY('B', ek_b);
+	MAP_KEY('C', ek_c);
+	MAP_KEY('D', ek_d);
+	MAP_KEY('E', ek_e);
+	MAP_KEY('F', ek_f);
+	MAP_KEY('G', ek_g);
+	MAP_KEY('H', ek_h);
+	MAP_KEY('I', ek_i);
+	MAP_KEY('J', ek_j);
+	MAP_KEY('K', ek_k);
+	MAP_KEY('L', ek_l);
+	MAP_KEY('M', ek_m);
+	MAP_KEY('N', ek_n);
+	MAP_KEY('O', ek_o);
+	MAP_KEY('P', ek_p);
+	MAP_KEY('Q', ek_q);
+	MAP_KEY('R', ek_r);
+	MAP_KEY('S', ek_s);
+	MAP_KEY('T', ek_t);
+	MAP_KEY('U', ek_u);
+	MAP_KEY('V', ek_v);
+	MAP_KEY('W', ek_w);
+	MAP_KEY('X', ek_x);
+	MAP_KEY('Y', ek_y);
+	MAP_KEY('Z', ek_z);
+	MAP_KEY('0', ek_0);
+	MAP_KEY('1', ek_1);
+	MAP_KEY('2', ek_2);
+	MAP_KEY('3', ek_3);
+	MAP_KEY('4', ek_4);
+	MAP_KEY('5', ek_5);
+	MAP_KEY('6', ek_6);
+	MAP_KEY('7', ek_7);
+	MAP_KEY('8', ek_8);
+	MAP_KEY('9', ek_9);
 
 	MAP_KEY(VK_NUMPAD0, ek_numpad0);
 	MAP_KEY(VK_NUMPAD1, ek_numpad1);
@@ -159,6 +163,9 @@ bool win32_keymap_init()
 	return true;
 }
 
+/***************************************
+*         BEGIN: HELPER FUNCTION       *
+****************************************/
 int16_t keymap_get(uint16_t in_virtual_key)
 {
 	static Array* keymap = (Array*)mem_get("array_keymap");
@@ -178,10 +185,22 @@ int16_t keymap_get(uint16_t in_virtual_key)
 	return *( (int16_t*)array_get(keymap, in_virtual_key) );
 }
 
+int8_t modifiers_get()
+{
+	int8_t mod = emodkey_unknown;
+
+	mod |= (GetAsyncKeyState(VK_CONTROL) & 0x8000) ? emodkey_ctrl  : emodkey_unknown;
+	mod |= (GetAsyncKeyState(VK_SHIFT)   & 0x8000) ? emodkey_shift : emodkey_unknown;
+	mod |= (GetAsyncKeyState(VK_MENU)    & 0x8000) ? emodkey_alt   : emodkey_unknown;
+
+	return mod;
+}
+/***************************************
+*         END: HELPER FUNCTION         *
+****************************************/
+
 LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 {
-	event_key event;
-
 	switch (InMsg)
 	{
 	case WM_DESTROY:
@@ -194,14 +213,11 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 	{
-		//WORD vKeyCode = (WORD)InWParam;
+		WORD vKeyCode = (WORD)InWParam;
 		WORD KeyFlags = HIWORD(InLParam);
 
 		bool is_repeated = (KeyFlags & KF_REPEAT) == KF_REPEAT;
 		bool is_released = (KeyFlags & KF_UP) == KF_UP;
-
-		event.devicetype = inputdevice_kboard;
-		event.key        = keymap_get(InWParam);
 		
 		ekeystate keystate = keystate_unknown;
 		switch (is_repeated)
@@ -217,35 +233,58 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 		default:
 			keystate = keystate_released;
 		}
-		event.state     = keystate;
-		event.timestamp = 0.0;
+		
+		onevent_kboard(vKeyCode, keystate, modifiers_get(), 0.0f);
 	}
 	break;
 
 	case WM_LBUTTONDOWN:
+		onevent_mouse_button(ek_lmouse, keystate_pressed, modifiers_get(), 0.0f);
+		break;
 	case WM_LBUTTONUP:
+		onevent_mouse_button(ek_lmouse, keystate_released, modifiers_get(), 0.0f);
+		break;
 	case WM_LBUTTONDBLCLK:
+		onevent_mouse_button(ek_lmouse, keystate_doubleclick, modifiers_get(), 0.0f);
 		break;
 
 	case WM_RBUTTONDOWN:
+		onevent_mouse_button(ek_rmouse, keystate_pressed, modifiers_get(), 0.0f);
+		break;
 	case WM_RBUTTONUP:
+		onevent_mouse_button(ek_rmouse, keystate_released, modifiers_get(), 0.0f);
+		break;
 	case WM_RBUTTONDBLCLK:
+		onevent_mouse_button(ek_rmouse, keystate_doubleclick, modifiers_get(), 0.0f);
 		break;
 
 	case WM_MBUTTONDOWN:
+		onevent_mouse_button(ek_mmouse, keystate_pressed, modifiers_get(), 0.0f);
+		break;
 	case WM_MBUTTONUP:
+		onevent_mouse_button(ek_mmouse, keystate_released, modifiers_get(), 0.0f);
+		break;
 	case WM_MBUTTONDBLCLK:
+		onevent_mouse_button(ek_mmouse, keystate_doubleclick, modifiers_get(), 0.0f);
 		break;
 
 	case WM_MOUSEWHEEL:
+	{
+		SHORT delta = GET_WHEEL_DELTA_WPARAM(InWParam);
+		if (delta < 0)
+			onevent_mouse_button(ek_mouse_scrolldown, keystate_pressed, modifiers_get(), 0.0f);
+		else
+			onevent_mouse_button(ek_mouse_scrollup,   keystate_pressed, modifiers_get(), 0.0f);
+	}
+		break;
+
+	case WM_MOUSEMOVE:
 		break;
 
 	case WM_DEVICECHANGE:
+		// toggle gamepad to check all gamepads connections
 		break;
 	}
-
-	if(event.devicetype != inputdevice_unknown)
-		event_add(&event);
 
 	return DefWindowProc(InHwnd, InMsg, InWParam, InLParam);
 };
@@ -339,6 +378,8 @@ void win32_run()
 			DispatchMessageW(&msg);
 		}
 	}
+
+	event_process();
 }
 
 bool win32_closing()

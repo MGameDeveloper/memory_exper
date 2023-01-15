@@ -42,6 +42,9 @@
     <ClInclude Include="core\event\event.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="userinput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="win32\win32.cpp">

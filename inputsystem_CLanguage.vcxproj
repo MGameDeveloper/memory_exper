@@ -130,6 +130,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="core\event\event.h" />
     <ClInclude Include="platform.h" />
+    <ClInclude Include="userinput.h" />
     <ClInclude Include="utils\Containers\Array.h" />
     <ClInclude Include="utils\Containers\Queue.h" />
     <ClInclude Include="utils\Containers\Stack.h" />

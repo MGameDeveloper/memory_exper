@@ -3,16 +3,6 @@
 
 #include "common.h"
 
-
-struct example_data
-{
-	const char* tag = nullptr;
-	float       data0 = 0.0f;
-	uint32_t    data1 = 0;
-	char        data2 = '\0';
-};
-
-
 int main()
 {
 	if (!platform_init())
@@ -22,16 +12,19 @@ int main()
 	}
 
 	// engine initialization here
+	keyvalue_set(0, ek_w,     -1.f);
+	keyvalue_set(0, ek_s,      1.f);
+	keyvalue_set(0, ek_up,    -1.f);
+	keyvalue_set(0, ek_down,   1.f);
+	keyvalue_set(0, ek_a,     -1.f);
+	keyvalue_set(0, ek_d,      1.f);
+	keyvalue_set(0, ek_left,  -1.f);
+	keyvalue_set(0, ek_right,  1.f);
 
 	while (!platform_closing())
 	{
 		platform_run();
 
-		event_key* k = nullptr;
-		while (k = event_get())
-		{
-			printf("key: %d\n", k->key);
-		}
 		// engine update here
 	}
 

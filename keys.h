@@ -2,19 +2,19 @@
 
 enum ekeystate
 {
-	keystate_unknown = -1,
+	keystate_unknown,
 
 	keystate_released,
 	keystate_pressed,
 	keystate_repeated,
 	keystate_doubleclick,
 
-	count
+	keystate_count
 };
 
 enum emodkeys
 {
-	emodey_unknown = -1,
+	emodkey_unknown,
 	
     emodkey_shift = 1 << 0,
 	emodkey_alt   = 1 << 1,
@@ -25,7 +25,7 @@ enum emodkeys
 
 enum ekeys
 {
-	ek_unknown = -1,
+	ek_unknown,
 
 	// not done
 	ek_cross, 
