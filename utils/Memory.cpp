@@ -110,6 +110,11 @@ void detach_blk(memblkdef* blk, memblklist* list)
 		list->tail->next = nullptr;
 		blk->prev        = nullptr;
 	}
+	else
+	{
+		list->head = nullptr;
+		list->tail = nullptr;
+	}
 }
 
 void attach_blk(memblkdef* blk, memblklist* list)
@@ -118,7 +123,7 @@ void attach_blk(memblkdef* blk, memblklist* list)
 	{
 		list->head = blk;
 		list->tail = blk;
-		blk->prev  = list->head;
+		blk->prev  = nullptr;
 		blk->next  = nullptr;
 	}
 	else
@@ -167,11 +172,10 @@ void link_subblk_after(memblkdef* blk, memblkdef* subblk)
 	subblk->prev = blk;
 	blk->next    = subblk;
 }
-
-
 /*****************************************************
 * END: HELPER FUNCTIONS
 *****************************************************/
+
 static memblklist         freeblks;
 static memblklist         usedblks;
 static memalloctrackerdef memalloctracker;
@@ -294,28 +298,6 @@ void* mem_alloc(const char* Name, uint32_t InSize)
 	return blk->data;
 }
 
-
-//void mem_free_name(const char* Name)
-//{
-//	memblkdef* blk = usedblks.head;
-//
-//	for (; blk; blk = blk->next)
-//		if (strcmp(blk->name, Name) == 0)
-//			break;
-//
-//	if (blk)
-//	{
-//		static const char* name = "EmptyBlock";
-//		memcpy(blk->name, name, str_size(name));
-//		memset(blk->data, 0, blk->size);
-//
-//		detach_blk(blk, &usedblks);
-//		attach_blk(blk, &freeblks);
-//
-//		memalloctracker.freecount++;
-//	}
-//}
-
 // need test
 void mem_free(void** InPtr)
 {
@@ -336,8 +318,8 @@ void mem_free(void** InPtr)
 		// --> Attach The Block To Freed Blocks
 		// --> Increase DeAllocation Counter
 
-		static const char* name = "EmptyBlock";
-		memcpy(blk->name, name, str_size(name));
+		//static const char* name = "EmptyBlock";
+		//memcpy(blk->name, name, str_size(name));
 		memset(blk->data, 0, blk->size);
 
 		detach_blk(blk, &usedblks);
@@ -348,7 +330,6 @@ void mem_free(void** InPtr)
 		(*InPtr) = nullptr;
 	}
 }
-
 
 void mem_display_info()
 {
@@ -417,15 +398,30 @@ void* mem_get(const char* Name)
 extern bool mem_deinit()
 {
 	memblkdef *blk = usedblks.head;
-	
-	if (blk)
-		for (; blk; blk = blk->next)
-			mem_free(mem_ptr(blk->data));
+	memblkdef* nextblk = nullptr;
+
+	for (; blk; blk = nextblk)
+	{
+		nextblk = blk->next;
+
+		memset(blk->data, 0, blk->size);
+
+		detach_blk(blk, &usedblks);
+		attach_blk(blk, &freeblks);
+
+		memalloctracker.freecount++;
+	}
 
 	mem_display_info();
 
 	if (GMemory.Address)
+	{
 		free(GMemory.Address);
+		GMemory.Size = 0;
+
+		GFreeMemory.Address = nullptr;
+		GFreeMemory.Size    = 0;
+	}
 
 	return true;
 }

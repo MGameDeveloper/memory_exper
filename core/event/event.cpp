@@ -1,45 +1,18 @@
 #include "event.h"
 #include "../../common.h"
 
-struct key_detail
-{
-	float  timestamp = 0.0f;
-	float  value     = 0.0f;
-	int8_t state     = keystate_unknown;
-	int8_t mods      = emodkey_unknown;
-};
-static Queue* event_queue = nullptr;
-static Array* users_keydetail[4];
-
-// for debugging input
+/**************************************
+*    BEGIN: INPUT DEBUGGING STUFF     *
+***************************************/
 static const char* keys_name[256];
 static const char* keys_state_name[keystate_count];
 static const char* modkeys_name[8];
-const char* keyname(int16_t inkey)          { if (inkey > 255 || inkey < 0) return "no_name";                       return keys_name[inkey]; }
-const char* keystatename(int8_t inkeystate) { if (inkeystate > keystate_count || inkeystate < 0)  return "no_name"; return keys_state_name[inkeystate]; }
-const char* modkeyname(int8_t inmodkey)     { if (inmodkey > 8 || inmodkey < 0) return "no_name";                   return modkeys_name[inmodkey]; }
 
-
-extern bool event_init()
+const char* keyname(int16_t inkey) { if (inkey > 255 || inkey < 0) return "no_name";                               return keys_name[inkey]; }
+const char* keystatename(int8_t inkeystate) { if (inkeystate > keystate_count || inkeystate < 0) return "no_name"; return keys_state_name[inkeystate]; }
+const char* modkeyname(int8_t inmodkey) { if (inmodkey > 8 || inmodkey < 0) return "no_name";                      return modkeys_name[inmodkey]; }
+void input_debugging_stuff_init()
 {
-	event_queue = queue_create("queue_eventqueue", 64, sizeof(eventdef));
-	if (!event_queue)
-		return false;
-
-	users_keydetail[0] = array_create("array_keydetail_user0", 256, sizeof(key_detail));
-	users_keydetail[1] = array_create("array_keydetail_user1", 256, sizeof(key_detail));
-	users_keydetail[2] = array_create("array_keydetail_user2", 256, sizeof(key_detail));
-	users_keydetail[3] = array_create("array_keydetail_user3", 256, sizeof(key_detail));
-	
-	for (int32_t useridx = 0; useridx < 4; ++useridx)
-	{
-		if (!users_keydetail[useridx])
-		{
-			return false;
-		}
-	}
-
-// for debugging input
 #define KEY_NAME(KEY) keys_name[KEY] = #KEY
 	KEY_NAME(ek_lmouse);
 	KEY_NAME(ek_rmouse);
@@ -158,10 +131,76 @@ extern bool event_init()
 	MOD_KEY_NAME(emodkey_alt | emodkey_shift);
 	MOD_KEY_NAME(emodkey_alt | emodkey_shift | emodkey_ctrl);
 #undef MOD_KEY_NAME
+}
+/**************************************
+*    BEGIN: INPUT DEBUGGING STUFF     *
+***************************************/
 
-	return true;
+
+/**************************************
+*    BEGIN: EVENT HANDLERS            *
+***************************************/
+typedef void(*event_handler)(eventdef* inev);
+event_handler event_handlers[eventtype_count];
+
+void kboard_event_handler(eventdef* inev)
+{
+	if (!inev)
+		return;
+
+	event_kboard* kb = &inev->kboard;
+
+	printf("key: %s | %s | %s \n", keyname(kb->key), keystatename(kb->state), modkeyname(kb->mods));
+
+	// loop through user_0 action map and invoke if any
+	
+	// or
+
+	// collect actions from user_0
 }
 
+void mouse_event_handler(eventdef* inev)
+{
+	if (!inev)
+		return;
+
+	event_mouse* ms = &inev->mouse;
+
+	printf("button: %s | %s | %s \n", keyname(ms->button), keystatename(ms->state), modkeyname(ms->mods));
+
+	// loop through user_0 action map and invoke if nay
+
+	// or
+
+	// collect actions from user_0 
+}
+
+void gpad_event_handler(eventdef* inev)
+{
+	// get action from user through inev->gpad.useridx;
+
+	// or
+
+	// collect actions from user through inev->gpad.useridx;
+}
+/**************************************
+*    END: EVENT HANDLERS              *
+***************************************/
+
+
+
+struct key_detail
+{
+	float  timestamp = 0.0f;
+	float  value     = 0.0f;
+	int8_t state     = keystate_unknown;
+	int8_t mods      = emodkey_unknown;
+};
+
+static Queue* event_queue = nullptr;
+static Array* users_keydetail[4];
+static float  mouse_x = 0.0f;
+static float  mouse_y = 0.0f;
 
 /***************************************
 *         BEGIN: HELPER FUNCTION       *
@@ -183,6 +222,10 @@ key_detail* keydetail_get(int8_t inuseridx, int16_t inkey)
 ****************************************/
 
 
+
+/***************************************
+*   BEGIN: USERINPUT.h HEADER IMPL     *
+****************************************/
 void keyvalue_set(int8_t inuseridx, int16_t inkey, float invalue)
 {
 	key_detail* kd = keydetail_get(inuseridx, inkey);
@@ -191,6 +234,50 @@ void keyvalue_set(int8_t inuseridx, int16_t inkey, float invalue)
 		return;
 
 	kd->value = invalue;
+}
+
+void mouse_get_pos(float* outx, float* outy)
+{
+	if (outx)
+		*outx = mouse_x;
+
+	if (outy)
+		*outy = mouse_y;
+}
+/***************************************
+*     END: USERINPUT.h HEADER IMPL     *
+****************************************/
+
+
+/***************************************
+*     BEGIN: EVENT.h HEADER IMPL       *
+****************************************/
+bool event_init()
+{
+	event_queue = queue_create("queue_eventqueue", 64, sizeof(eventdef));
+	if (!event_queue)
+		return false;
+
+	users_keydetail[0] = array_create("array_keydetail_user0", 256, sizeof(key_detail));
+	users_keydetail[1] = array_create("array_keydetail_user1", 256, sizeof(key_detail));
+	users_keydetail[2] = array_create("array_keydetail_user2", 256, sizeof(key_detail));
+	users_keydetail[3] = array_create("array_keydetail_user3", 256, sizeof(key_detail));
+	
+	for (int32_t useridx = 0; useridx < 4; ++useridx)
+	{
+		if (!users_keydetail[useridx])
+		{
+			return false;
+		}
+	}
+
+	event_handlers[eventtype_kboard] = kboard_event_handler;
+	event_handlers[eventtype_mouse]  = mouse_event_handler;
+	event_handlers[eventtype_gpad]   = gpad_event_handler;
+
+	input_debugging_stuff_init();
+
+	return true;
 }
 
 void onevent_kboard(int16_t inkey, int8_t instate, int8_t inmods, float intimestamp)
@@ -250,12 +337,22 @@ void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue)
 
 }
 
+
+void onevent_mouse_move(float inx, float iny)
+{
+	mouse_x = inx;
+	mouse_y = iny;
+}
+
+
 void event_process()
 {
 	if (!event_queue)
 		return;
 
 	eventdef* ev = nullptr;
+	event_handler ev_handler = nullptr;
+
 	while (queue_size(event_queue))
 	{
 		ev = (eventdef*)queue_get(event_queue);
@@ -263,29 +360,16 @@ void event_process()
 		if (!ev)
 			break;
 
-		switch (ev->type)
-		{
-		case eventtype_kboard:
-		{
-			event_kboard kb = ev->kboard;
-			printf("key: %s | %s | %s \n", keyname(kb.key), keystatename(kb.state), modkeyname(kb.mods));
-		}
+		if (ev->type == eventtype_unknown || ev->type > eventtype_count - 1)
 			break;
 
-		case eventtype_mouse:
-		{
-			event_mouse ms = ev->mouse;
-			printf("button: %s | %s | %s \n", keyname(ms.button), keystatename(ms.state), modkeyname(ms.mods));
-		}
-			break;
-
-		case eventtype_gpad:
-		{
-
-		}
-			break;
-		}
+		ev_handler = event_handlers[ev->type];
+		if (ev_handler)
+			ev_handler(ev);
 	}
 
 	queue_clear(event_queue);
 }
+/***************************************
+*       END: EVENT.h HEADER IMPL       *
+****************************************/

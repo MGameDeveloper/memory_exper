@@ -25,7 +25,7 @@ enum emodkeys
 
 enum ekeys
 {
-	ek_unknown,
+	ek_unknown = -1,
 
 	// not done
 	ek_cross, 

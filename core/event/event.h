@@ -58,4 +58,3 @@ extern void onevent_mouse_button(int16_t inbutton, int8_t instate, int8_t inmods
 extern void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t state, float intimestamp);
 extern void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue);
 extern void onevent_mouse_move(float inx, float iny);
-

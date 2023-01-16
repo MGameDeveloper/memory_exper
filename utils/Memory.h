@@ -1,9 +1,7 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
 #include <stdint.h>
+#include <cstring>
 
 #define MEM_SIZE_KB(V) (V * 1024LL)
 #define MEM_SIZE_MB(V) (MEM_SIZE_KB(V) * 1024LL)
@@ -19,12 +17,6 @@ extern void  mem_display_info();
 
 // simple macro to hide casting when passing memory pointer to delete and free its content
 #define mem_ptr(var) (void**)&var
-
-
-// may not be a good idea since all reterived pointers will be pointing the same block
-// and can change its fields which may cause problems
-// may consider removing this functionality
-//extern void  mem_free_name(const char* Name); 
 
 
 /************************************************

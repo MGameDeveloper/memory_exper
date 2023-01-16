@@ -1,6 +1,6 @@
-#include "win32.h"
-
 #include <stdio.h>
+
+#include "win32.h"
 #include "../utils/Memory.h"
 #include "../utils/Containers/Array.h"
 #include "../core/event/event.h"
@@ -32,7 +32,6 @@
 #define VK_X 0x58
 #define VK_Y 0x59
 #define VK_Z 0x5A
-
 #define VK_0 0x30
 #define VK_1 0x31
 #define VK_2 0x32
@@ -58,44 +57,42 @@ bool win32_keymap_init()
 	MAP_KEY(VK_LBUTTON, ek_lmouse);
 	MAP_KEY(VK_RBUTTON, ek_rmouse);
 	MAP_KEY(VK_MBUTTON, ek_mmouse);
-	
-	MAP_KEY('A', ek_a);
-	MAP_KEY('B', ek_b);
-	MAP_KEY('C', ek_c);
-	MAP_KEY('D', ek_d);
-	MAP_KEY('E', ek_e);
-	MAP_KEY('F', ek_f);
-	MAP_KEY('G', ek_g);
-	MAP_KEY('H', ek_h);
-	MAP_KEY('I', ek_i);
-	MAP_KEY('J', ek_j);
-	MAP_KEY('K', ek_k);
-	MAP_KEY('L', ek_l);
-	MAP_KEY('M', ek_m);
-	MAP_KEY('N', ek_n);
-	MAP_KEY('O', ek_o);
-	MAP_KEY('P', ek_p);
-	MAP_KEY('Q', ek_q);
-	MAP_KEY('R', ek_r);
-	MAP_KEY('S', ek_s);
-	MAP_KEY('T', ek_t);
-	MAP_KEY('U', ek_u);
-	MAP_KEY('V', ek_v);
-	MAP_KEY('W', ek_w);
-	MAP_KEY('X', ek_x);
-	MAP_KEY('Y', ek_y);
-	MAP_KEY('Z', ek_z);
-	MAP_KEY('0', ek_0);
-	MAP_KEY('1', ek_1);
-	MAP_KEY('2', ek_2);
-	MAP_KEY('3', ek_3);
-	MAP_KEY('4', ek_4);
-	MAP_KEY('5', ek_5);
-	MAP_KEY('6', ek_6);
-	MAP_KEY('7', ek_7);
-	MAP_KEY('8', ek_8);
-	MAP_KEY('9', ek_9);
-
+	MAP_KEY(VK_A, ek_a);
+	MAP_KEY(VK_B, ek_b);
+	MAP_KEY(VK_C, ek_c);
+	MAP_KEY(VK_D, ek_d);
+	MAP_KEY(VK_E, ek_e);
+	MAP_KEY(VK_F, ek_f);
+	MAP_KEY(VK_G, ek_g);
+	MAP_KEY(VK_H, ek_h);
+	MAP_KEY(VK_I, ek_i);
+	MAP_KEY(VK_J, ek_j);
+	MAP_KEY(VK_K, ek_k);
+	MAP_KEY(VK_L, ek_l);
+	MAP_KEY(VK_M, ek_m);
+	MAP_KEY(VK_N, ek_n);
+	MAP_KEY(VK_O, ek_o);
+	MAP_KEY(VK_P, ek_p);
+	MAP_KEY(VK_Q, ek_q);
+	MAP_KEY(VK_R, ek_r);
+	MAP_KEY(VK_S, ek_s);
+	MAP_KEY(VK_T, ek_t);
+	MAP_KEY(VK_U, ek_u);
+	MAP_KEY(VK_V, ek_v);
+	MAP_KEY(VK_W, ek_w);
+	MAP_KEY(VK_X, ek_x);
+	MAP_KEY(VK_Y, ek_y);
+	MAP_KEY(VK_Z, ek_z);
+	MAP_KEY(VK_0, ek_0);
+	MAP_KEY(VK_1, ek_1);
+	MAP_KEY(VK_2, ek_2);
+	MAP_KEY(VK_3, ek_3);
+	MAP_KEY(VK_4, ek_4);
+	MAP_KEY(VK_5, ek_5);
+	MAP_KEY(VK_6, ek_6);
+	MAP_KEY(VK_7, ek_7);
+	MAP_KEY(VK_8, ek_8);
+	MAP_KEY(VK_9, ek_9);
 	MAP_KEY(VK_NUMPAD0, ek_numpad0);
 	MAP_KEY(VK_NUMPAD1, ek_numpad1);
 	MAP_KEY(VK_NUMPAD2, ek_numpad2);
@@ -106,7 +103,6 @@ bool win32_keymap_init()
 	MAP_KEY(VK_NUMPAD7, ek_numpad7);
 	MAP_KEY(VK_NUMPAD8, ek_numpad8);
 	MAP_KEY(VK_NUMPAD9, ek_numpad9);
-
 	MAP_KEY(VK_F1,  ek_f1);
 	MAP_KEY(VK_F2,  ek_f2);
 	MAP_KEY(VK_F3,  ek_f3);
@@ -119,12 +115,10 @@ bool win32_keymap_init()
 	MAP_KEY(VK_F10, ek_f10);
 	MAP_KEY(VK_F11, ek_f11);
 	MAP_KEY(VK_F12, ek_f12);
-
 	MAP_KEY(VK_UP,    ek_up);
 	MAP_KEY(VK_DOWN,  ek_down);
 	MAP_KEY(VK_LEFT,  ek_left);
-	MAP_KEY(VK_RIGHT, ek_right);
-	
+	MAP_KEY(VK_RIGHT, ek_right);	
 	MAP_KEY(VK_RETURN,  ek_enter);
 	MAP_KEY(VK_ESCAPE,  ek_esc);
 	MAP_KEY(VK_SPACE,   ek_space);
@@ -139,7 +133,6 @@ bool win32_keymap_init()
 	MAP_KEY(VK_END,     ek_end);
 	MAP_KEY(VK_HOME,    ek_home);
 	MAP_KEY(VK_DECIMAL, ek_decimal);
-
 	MAP_KEY(VK_OEM_1,      ek_semicolon);
 	MAP_KEY(VK_OEM_2,      ek_slash);
 	MAP_KEY(VK_OEM_3,      ek_tilde);
@@ -151,7 +144,6 @@ bool win32_keymap_init()
 	MAP_KEY(VK_OEM_PERIOD, ek_period);
 	MAP_KEY(VK_OEM_PLUS,   ek_equals);
 	MAP_KEY(VK_OEM_COMMA,  ek_comma);
-
 	MAP_KEY(VK_MULTIPLY, ek_multiply);
 	MAP_KEY(VK_SUBTRACT, ek_subtract);
 	MAP_KEY(VK_ADD,      ek_add);
@@ -213,28 +205,24 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 	{
-		WORD vKeyCode = (WORD)InWParam;
 		WORD KeyFlags = HIWORD(InLParam);
 
 		bool is_repeated = (KeyFlags & KF_REPEAT) == KF_REPEAT;
 		bool is_released = (KeyFlags & KF_UP) == KF_UP;
 		
 		ekeystate keystate = keystate_unknown;
-		switch (is_repeated)
-		{
-		case 0:
-			keystate = keystate_pressed;
-			break;
-
-		case 1:
-			keystate = keystate_repeated;
-			break;
-
-		default:
+		
+		if (is_released)
 			keystate = keystate_released;
+		else
+		{
+			if (is_repeated)
+				keystate = keystate_repeated;
+			else
+				keystate = keystate_pressed;
 		}
 		
-		onevent_kboard(vKeyCode, keystate, modifiers_get(), 0.0f);
+		onevent_kboard(keymap_get(InWParam), keystate, modifiers_get(), 0.0f);
 	}
 	break;
 
@@ -279,6 +267,11 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 		break;
 
 	case WM_MOUSEMOVE:
+	{
+		float x = ((float)(short)LOWORD(InLParam));
+		float y = ((float)(short)HIWORD(InLParam));
+		onevent_mouse_move(x, y);
+	}
 		break;
 
 	case WM_DEVICECHANGE:
@@ -306,9 +299,16 @@ static win32data_s win32data;
 
 bool win32_init()
 {
+	// should memory initialization be in platform.cpp - platform_init()
 	if (!mem_init(MEM_SIZE_MB(2)))
 	{
 		printf("memory initialization failed.\n");
+		return false;
+	}
+
+	if (!win32_keymap_init())
+	{
+		printf("win32 keymap initialization failed.\n");
 		return false;
 	}
 
@@ -346,11 +346,6 @@ bool win32_init()
 	ShowWindow(win32data.hwnd, 1);
 	UpdateWindow(win32data.hwnd);
 
-	if (!win32_keymap_init())
-	{
-		printf("win32 keymap initialization failed.\n");
-		return false;
-	}
 	printf("win32 platform initialized.\n");
 
 	return true;

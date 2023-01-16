@@ -24,7 +24,6 @@ int main()
 	while (!platform_closing())
 	{
 		platform_run();
-
 		// engine update here
 	}
 
