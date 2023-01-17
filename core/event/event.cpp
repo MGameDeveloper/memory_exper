@@ -217,16 +217,8 @@ key_detail* keydetail_get(int8_t inuseridx, int16_t inkey)
 
 	return (key_detail*)array_get(user_kd, inkey);
 }
-/***************************************
-*         END: HELPER FUNCTION         *
-****************************************/
 
-
-
-/***************************************
-*   BEGIN: USERINPUT.h HEADER IMPL     *
-****************************************/
-void keyvalue_set(int8_t inuseridx, int16_t inkey, float invalue)
+void key_setvalue(int8_t inuseridx, int16_t inkey, float invalue)
 {
 	key_detail* kd = keydetail_get(inuseridx, inkey);
 
@@ -235,18 +227,11 @@ void keyvalue_set(int8_t inuseridx, int16_t inkey, float invalue)
 
 	kd->value = invalue;
 }
-
-void mouse_get_pos(float* outx, float* outy)
-{
-	if (outx)
-		*outx = mouse_x;
-
-	if (outy)
-		*outy = mouse_y;
-}
 /***************************************
-*     END: USERINPUT.h HEADER IMPL     *
+*         END: HELPER FUNCTION         *
 ****************************************/
+
+
 
 
 /***************************************
@@ -372,4 +357,97 @@ void event_process()
 }
 /***************************************
 *       END: EVENT.h HEADER IMPL       *
+****************************************/
+
+
+
+
+
+
+
+
+/***************************************
+*   BEGIN: USERINPUT.h HEADER IMPL     *
+****************************************/
+struct keymsgdef
+{
+	uint16_t msg[keystate_count][emodkey_count];
+};
+
+struct msghandlerdef
+{
+	union handlerdef
+	{
+		void(*axis_handler)(float) = nullptr;
+		void(*action_handler)();
+	};
+
+	handlerdef handler[keystate_count][emodkey_count];
+};
+
+keymsgdef     *user_inputlayout[einputuser_count];
+msghandlerdef *user_inputhandlers[einputuser_count];
+
+void mouse_get_pos(float* outx, float* outy)
+{
+	if (outx)
+		*outx = mouse_x;
+
+	if (outy)
+		*outy = mouse_y;
+}
+
+void inputlayout_init(uint8_t ininputuser, uint16_t inmsgcount)
+{
+	if (ininputuser > 3 || ininputuser < 0)
+		return;
+
+	keymsgdef     *kmd = user_inputlayout[ininputuser];
+	msghandlerdef *mhd = user_inputhandlers[ininputuser];
+
+	if (kmd || mhd)
+		return;
+
+	const char *array_name = nullptr;
+	
+	switch (ininputuser)
+	{
+	case 0: array_name =  "array_inputlayout_0"; break;
+	case 1: array_name =  "array_inputlayout_1"; break;
+	case 2: array_name =  "array_inputlayout_2"; break;
+	case 3: array_name =  "array_inputlayout_3"; break;
+	}
+	kmd = (keymsgdef*)array_create(array_name, ek_count, sizeof(keymsgdef));
+
+	switch (ininputuser)
+	{
+	case 0: array_name = "array_inputhandler_0"; break;
+	case 1: array_name = "array_inputhandler_1"; break;
+	case 2: array_name = "array_inputhandler_2"; break;
+	case 3: array_name = "array_inputhandler_3"; break;
+	}
+	mhd = (msghandlerdef*)array_create(array_name, inmsgcount, sizeof(msghandlerdef));
+}
+
+void bind_action_msg(uint8_t ininputuser, uint8_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t = emodkey_unknown)
+{
+
+}
+
+void bind_axis_msg(uint8_t ininputuser, uint8_t inkey, uint16_t inmsgid, float inaxisvalue)
+{
+
+}
+
+void bind_action_handler(uint16_t inmsgid, void(*action_handler)())
+{
+
+}
+
+void bind_axis_handler(uint16_t inmsgid, void(*axis_handler)(float))
+{
+
+}
+/***************************************
+*     END: USERINPUT.h HEADER IMPL     *
 ****************************************/

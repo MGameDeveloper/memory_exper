@@ -15,12 +15,12 @@ enum ekeystate
 enum emodkeys
 {
 	emodkey_unknown,
-	
-    emodkey_shift = 1 << 0,
+
+	emodkey_shift = 1 << 0,
 	emodkey_alt   = 1 << 1,
 	emodkey_ctrl  = 1 << 2,
 
-	emodkey_count
+	emodkey_count = (emodkey_alt | emodkey_ctrl | emodkey_shift) + 1
 };
 
 enum ekeys
