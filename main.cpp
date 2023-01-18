@@ -39,6 +39,7 @@ int main()
 	}
 
 	// engine initialization here
+	inputlayout_init(0, actionid_count);
 
 	// actions bindings
 	bind_action_msg(einputuser_0, ek_d, keystate_pressed, actionid_dodge,   emodkey_unknown);
