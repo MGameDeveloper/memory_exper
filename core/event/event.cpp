@@ -4,15 +4,44 @@
 struct key_detail
 {
 	float  timestamp = 0.0f;
-	float  value = 0.0f;
-	int8_t state = keystate_unknown;
-	int8_t mods = emodkey_unknown;
+	float  value     = 0.0f;
+	int8_t state     = keystate_unknown;
+	int8_t mods      = emodkey_unknown;
 };
 
-static Queue* user_eventqueue[4];
-static Array* users_keydetail[4];
+static Queue *user_eventqueue[4];
+static Array *users_keydetail[4];
 static float  mouse_x = 0.0f;
 static float  mouse_y = 0.0f;
+
+/***************************************
+*         BEGIN: HELPER FUNCTION       *
+****************************************/
+key_detail* keydetail_get(int8_t inuseridx, int16_t inkey)
+{
+	if (inuseridx > 3 || inuseridx < 0)
+		return nullptr;
+
+	Array* user_kd = users_keydetail[inuseridx];
+
+	if (!user_kd)
+		return nullptr;
+
+	return (key_detail*)array_get(user_kd, inkey);
+}
+
+void key_setvalue(int8_t inuseridx, int16_t inkey, float invalue)
+{
+	key_detail* kd = keydetail_get(inuseridx, inkey);
+
+	if (!kd)
+		return;
+
+	kd->value = invalue;
+}
+/***************************************
+*         END: HELPER FUNCTION         *
+****************************************/
 
 
 /**************************************
@@ -155,9 +184,16 @@ void input_debugging_stuff_init()
 /***************************************
 *   BEGIN: USERINPUT.h HEADER IMPL     *
 ****************************************/
-struct keymsgdef
+struct actionmsgdef
 {
 	uint16_t msg[keystate_count][emodkey_count];
+	int16_t key = ek_unknown;
+};
+
+struct axismsgdef
+{
+	uint16_t msg[emodkey_count];
+	int16_t key = ek_unknown;
 };
 
 struct msghandlerdef
@@ -166,15 +202,12 @@ struct msghandlerdef
 	{
 		void(*axis_handler)(float) = nullptr;
 		void(*action_handler)();
-	};
-
-	// 5 keystates
-	// 8 for modifiers combination
-	handlerdef handler[5][8];
+	} handler;
 };
 
-keymsgdef* user_inputlayout[4];
-msghandlerdef* user_inputhandlers[4];
+Array *user_actionlayout[4];
+Array *user_axislayout[4];
+Array *user_inputhandlers[4];
 
 void mouse_get_pos(float* outx, float* outy)
 {
@@ -190,51 +223,96 @@ void inputlayout_init(uint8_t ininputuser, uint16_t inmsgcount)
 	if (ininputuser > 3 || ininputuser < 0)
 		return;
 
-	keymsgdef* kmd = user_inputlayout[ininputuser];
-	msghandlerdef* mhd = user_inputhandlers[ininputuser];
+	Array *imd_actionlayout = user_actionlayout[ininputuser];
+	Array *img_axislayout   = user_axislayout[ininputuser];
+	Array *mhd              = user_inputhandlers[ininputuser];
 
-	if (kmd || mhd)
+	if (img_axislayout || imd_actionlayout || mhd)
 		return;
 
 	const char* array_name = nullptr;
 
 	switch (ininputuser)
 	{
-	case 0: array_name = "array_inputlayout_0"; break;
-	case 1: array_name = "array_inputlayout_1"; break;
-	case 2: array_name = "array_inputlayout_2"; break;
-	case 3: array_name = "array_inputlayout_3"; break;
+	case 0: array_name = "array_actionmap_user_0"; break;
+	case 1: array_name = "array_actionmap_user_1"; break;
+	case 2: array_name = "array_actionmap_user_2"; break;
+	case 3: array_name = "array_actionmap_user_3"; break;
 	}
-	kmd = (keymsgdef*)array_create(array_name, ek_count, sizeof(keymsgdef));
+	user_actionlayout[ininputuser]  = array_create(array_name, ek_count, sizeof(actionmsgdef));
 
 	switch (ininputuser)
 	{
-	case 0: array_name = "array_inputhandler_0"; break;
-	case 1: array_name = "array_inputhandler_1"; break;
-	case 2: array_name = "array_inputhandler_2"; break;
-	case 3: array_name = "array_inputhandler_3"; break;
+	case 0: array_name = "array_axismap_user_0"; break;
+	case 1: array_name = "array_axismap_user_1"; break;
+	case 2: array_name = "array_axismap_user_2"; break;
+	case 3: array_name = "array_axismap_user_3"; break;
 	}
-	mhd = (msghandlerdef*)array_create(array_name, inmsgcount, sizeof(msghandlerdef));
+	user_axislayout[ininputuser]    = array_create(array_name, ek_count, sizeof(axismsgdef));
+
+	switch (ininputuser)
+	{
+	case 0: array_name = "array_msghandler_user_0"; break;
+	case 1: array_name = "array_msghandler_user_1"; break;
+	case 2: array_name = "array_msghandler_user_2"; break;
+	case 3: array_name = "array_msghandler_user_3"; break;
+	}
+	user_inputhandlers[ininputuser] = array_create(array_name, inmsgcount, sizeof(msghandlerdef));
 }
 
-void bind_action_msg(uint8_t ininputuser, uint8_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmods)
+void bind_action_msg(uint8_t ininputuser, int16_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmods)
 {
+	Array* actions = user_actionlayout[ininputuser];
+	if (!actions)
+		return;
 
+	actionmsgdef* msgdef = (actionmsgdef*)array_get(actions, inkey);
+	if (!msgdef)
+		return;
+
+	msgdef->msg[inkeystate][inmods] = inmsgid;
+	msgdef->key = inkey;
 }
 
-void bind_axis_msg(uint8_t ininputuser, uint8_t inkey, uint16_t inmsgid, float inaxisvalue)
+void bind_axis_msg(uint8_t ininputuser, int16_t inkey, uint16_t inmsgid, float inaxisvalue, uint8_t inmods)
 {
+	Array* axes = user_axislayout[ininputuser];
+	if (!axes)
+		return;
 
+	axismsgdef* msgdef = (axismsgdef*)array_get(axes, inkey);
+	if (!msgdef)
+		return;
+
+	msgdef->key = inkey;
+	msgdef->msg[inmods] = inmsgid;
+	key_setvalue(ininputuser, inkey, inaxisvalue);
 }
 
-void bind_action_handler(uint16_t inmsgid, void(*action_handler)())
+void bind_action_handler(uint8_t ininputuser, uint16_t inmsgid, void(*action_handler)())
 {
+	Array* handlers = user_inputhandlers[ininputuser];
+	if (!handlers)
+		return;
 
+	msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
+	if (!handlerdef)
+		return;
+
+	handlerdef->handler.action_handler = action_handler;
 }
 
-void bind_axis_handler(uint16_t inmsgid, void(*axis_handler)(float))
+void bind_axis_handler(uint8_t ininputuser, uint16_t inmsgid, void(*axis_handler)(float))
 {
+	Array* handlers = user_inputhandlers[ininputuser];
+	if (!handlers)
+		return;
 
+	msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
+	if (!handlerdef)
+		return;
+
+	handlerdef->handler.axis_handler = axis_handler;
 }
 /***************************************
 *     END: USERINPUT.h HEADER IMPL     *
@@ -253,15 +331,30 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 	if (!inev)
 		return;
 
-	event_kboard* kb = &inev->kboard;
+	event_kboard* ev = &inev->kboard;
 
-	printf("key: %s | %s | %s \n", keyname(kb->key), keystatename(kb->state), modkeyname(kb->mods));
+	//printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
 
-	// loop through user_0 action map and invoke if any
-	
-	// or
+	Array         *user_actions  = user_actionlayout[useridx];
+	Array         *user_handlers = user_inputhandlers[useridx];
+	actionmsgdef  *actionmsg     = nullptr;
+	msghandlerdef *msghandler    = nullptr;
+	uint16_t       msg           = 0;
 
-	// collect actions from user_0
+	if (user_actions && user_handlers)
+	{
+		actionmsg = (actionmsgdef*)array_get(user_actions, ev->key);
+		if (actionmsg)
+		{
+			msg = actionmsg->msg[ev->state][ev->mods];
+
+			msghandler = (msghandlerdef*)array_get(user_handlers, msg);
+			if (msghandler && msghandler->handler.action_handler)
+			{
+				msghandler->handler.action_handler();
+			}
+		}
+	}
 }
 
 void mouse_event_handler(uint8_t useridx, eventdef* inev)
@@ -291,38 +384,6 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 /**************************************
 *    END: EVENT HANDLERS              *
 ***************************************/
-
-
-
-
-/***************************************
-*         BEGIN: HELPER FUNCTION       *
-****************************************/
-key_detail* keydetail_get(int8_t inuseridx, int16_t inkey)
-{
-	if (inuseridx > 3 || inuseridx < 0)
-		return nullptr;
-
-	Array* user_kd = users_keydetail[inuseridx];
-
-	if (!user_kd)
-		return nullptr;
-
-	return (key_detail*)array_get(user_kd, inkey);
-}
-
-void key_setvalue(int8_t inuseridx, int16_t inkey, float invalue)
-{
-	key_detail* kd = keydetail_get(inuseridx, inkey);
-
-	if (!kd)
-		return;
-
-	kd->value = invalue;
-}
-/***************************************
-*         END: HELPER FUNCTION         *
-****************************************/
 
 
 
@@ -364,8 +425,8 @@ void onevent_kboard(int8_t inuserid, int16_t inkey, int8_t instate, int8_t inmod
 	if (inuserid < 0 || inuserid > 3)
 		return;
 
-	Queue      *ev_queue = user_eventqueue[inuserid];
-	key_detail *kd       = keydetail_get(inuserid, inkey);
+	Queue   *ev_queue = user_eventqueue[inuserid];
+	key_detail *kd    = keydetail_get(inuserid, inkey);
 
 	if (!kd)
 		return;
@@ -425,7 +486,6 @@ void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue)
 
 }
 
-
 void onevent_mouse_move(float inx, float iny)
 {
 	mouse_x = inx;
@@ -433,34 +493,83 @@ void onevent_mouse_move(float inx, float iny)
 }
 
 
+void process_axes()
+{
+	int8_t         useridx = 0;
+	Array* user_axes = nullptr;
+	Array* user_keydetail = nullptr;
+	Array* user_handlers = nullptr;
+	axismsgdef* axismsg = nullptr;
+	key_detail* kd = nullptr;
+	msghandlerdef* msghandler = nullptr;
+
+	while (useridx < 4)
+	{
+		user_axes = user_axislayout[useridx];
+		user_keydetail = users_keydetail[useridx];
+		user_handlers = user_inputhandlers[useridx];
+		++useridx;
+
+		if (!user_axes || !user_keydetail || !user_handlers)
+			continue;
+
+		for (int32_t idx = 0; idx < array_size(user_axes); ++idx)
+		{
+			axismsg = (axismsgdef*)array_get(user_axes, idx);
+
+			if (!axismsg)
+				continue;
+
+			kd = (key_detail*)array_get(user_keydetail, axismsg->key);
+
+			if (!kd)
+				continue;
+
+			if (kd->state <= keystate_released)
+				continue;
+
+			msghandler = (msghandlerdef*)array_get(user_handlers, axismsg->msg[kd->mods]);
+			if (msghandler && msghandler->handler.axis_handler)
+			{
+				msghandler->handler.axis_handler(kd->value);
+			}
+		}
+	}
+}
+
 void event_process()
 {
-	eventdef*     ev         = nullptr;
-	event_handler ev_handler = nullptr;
+	process_axes();
 
+	eventdef      *ev         = nullptr;
+	event_handler  ev_handler = nullptr;
+	Queue         *ev_queue   = nullptr;
+	
 	for (uint8_t queueidx = 0; queueidx < 4; ++queueidx)
 	{
-		if (!user_eventqueue[queueidx])
+		ev_queue = user_eventqueue[queueidx];
+	
+		if (!ev_queue)
 			return;
-
-		while (queue_size(user_eventqueue[queueidx]))
+		
+		while (queue_size(ev_queue))
 		{
-			ev = (eventdef*)queue_get(user_eventqueue[queueidx]);
-
+			ev = (eventdef*)queue_get(ev_queue);
+	
 			if (!ev)
 				return;
-
+	
 			if (ev->type == eventtype_unknown || ev->type > eventtype_count - 1)
 				return;
-
+	
 			ev_handler = event_handlers[ev->type];
 			if (ev_handler)
 			{
 				ev_handler(queueidx, ev);
 			}
 		}
-
-		queue_clear(user_eventqueue[queueidx]);
+	
+		queue_clear(ev_queue);
 	}
 }
 /***************************************
