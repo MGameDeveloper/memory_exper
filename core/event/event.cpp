@@ -187,13 +187,11 @@ void input_debugging_stuff_init()
 struct actionmsgdef
 {
 	uint16_t msg[keystate_count][emodkey_count];
-	int16_t key = ek_unknown;
 };
 
 struct axismsgdef
 {
 	uint16_t msg[emodkey_count];
-	int16_t key = ek_unknown;
 };
 
 struct msghandlerdef
@@ -271,7 +269,6 @@ void bind_action_msg(uint8_t ininputuser, int16_t inkey, uint8_t inkeystate, uin
 		return;
 
 	msgdef->msg[inkeystate][inmods] = inmsgid;
-	msgdef->key = inkey;
 }
 
 void bind_axis_msg(uint8_t ininputuser, int16_t inkey, uint16_t inmsgid, float inaxisvalue, uint8_t inmods)
@@ -284,7 +281,6 @@ void bind_axis_msg(uint8_t ininputuser, int16_t inkey, uint16_t inmsgid, float i
 	if (!msgdef)
 		return;
 
-	msgdef->key = inkey;
 	msgdef->msg[inmods] = inmsgid;
 	key_setvalue(ininputuser, inkey, inaxisvalue);
 }
@@ -314,6 +310,51 @@ void bind_axis_handler(uint8_t ininputuser, uint16_t inmsgid, void(*axis_handler
 
 	handlerdef->handler.axis_handler = axis_handler;
 }
+
+void process_axes()
+{
+	int8_t         useridx = 0;
+	Array* user_axes = nullptr;
+	Array* user_keydetail = nullptr;
+	Array* user_handlers = nullptr;
+	axismsgdef* axismsg = nullptr;
+	key_detail* kd = nullptr;
+	msghandlerdef* msghandler = nullptr;
+
+	while (useridx < 4)
+	{
+		user_axes = user_axislayout[useridx];
+		user_keydetail = users_keydetail[useridx];
+		user_handlers = user_inputhandlers[useridx];
+		++useridx;
+
+		if (!user_axes || !user_keydetail || !user_handlers)
+			continue;
+
+		for (int32_t key = 0; key < ek_count; ++key)
+		{
+			axismsg = (axismsgdef*)array_get(user_axes, key);
+
+			if (!axismsg)
+				continue;
+
+			kd = (key_detail*)array_get(user_keydetail, key);
+
+			if (!kd)
+				continue;
+
+			if (kd->state <= keystate_released)
+				continue;
+
+			msghandler = (msghandlerdef*)array_get(user_handlers, axismsg->msg[kd->mods]);
+			if (msghandler && msghandler->handler.axis_handler)
+			{
+				msghandler->handler.axis_handler(kd->value);
+			}
+		}
+	}
+}
+
 /***************************************
 *     END: USERINPUT.h HEADER IMPL     *
 ****************************************/
@@ -490,51 +531,6 @@ void onevent_mouse_move(float inx, float iny)
 {
 	mouse_x = inx;
 	mouse_y = iny;
-}
-
-
-void process_axes()
-{
-	int8_t         useridx = 0;
-	Array* user_axes = nullptr;
-	Array* user_keydetail = nullptr;
-	Array* user_handlers = nullptr;
-	axismsgdef* axismsg = nullptr;
-	key_detail* kd = nullptr;
-	msghandlerdef* msghandler = nullptr;
-
-	while (useridx < 4)
-	{
-		user_axes = user_axislayout[useridx];
-		user_keydetail = users_keydetail[useridx];
-		user_handlers = user_inputhandlers[useridx];
-		++useridx;
-
-		if (!user_axes || !user_keydetail || !user_handlers)
-			continue;
-
-		for (int32_t idx = 0; idx < array_size(user_axes); ++idx)
-		{
-			axismsg = (axismsgdef*)array_get(user_axes, idx);
-
-			if (!axismsg)
-				continue;
-
-			kd = (key_detail*)array_get(user_keydetail, axismsg->key);
-
-			if (!kd)
-				continue;
-
-			if (kd->state <= keystate_released)
-				continue;
-
-			msghandler = (msghandlerdef*)array_get(user_handlers, axismsg->msg[kd->mods]);
-			if (msghandler && msghandler->handler.axis_handler)
-			{
-				msghandler->handler.axis_handler(kd->value);
-			}
-		}
-	}
 }
 
 void event_process()

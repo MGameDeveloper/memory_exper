@@ -19,18 +19,19 @@ enum eactionid
 	actionid_count
 };
 
-static float player_y_pos = 0.0f;
+static float player_y_pos = 50.f;
+static float player_y_vel = 0.0f;
 
 // Axis handlers
 void move_forward(float invalue)
 {
 	//printf("forward: %.2f\n", invalue);
-	player_y_pos += invalue;
+	player_y_vel += invalue;
 }
 void move_sideward(float invalue)
 {
 	//printf("sideward: %.2f\n", invalue);
-	player_y_pos += invalue;
+	player_y_vel += invalue;
 }
 
 // Action handlers
@@ -94,7 +95,10 @@ int main()
 		platform_run();
 
 		// engine update here
-		printf("player_y_pos: %.2f\n", player_y_pos);
+		float new_y_pos = player_y_pos + player_y_vel;
+		printf("player_y_pos: %.2f\n", new_y_pos);
+		//printf("player_y_vel: %.2f\n", player_y_vel);
+		player_y_vel = 0;
 	}
 
 	platform_deinit();
