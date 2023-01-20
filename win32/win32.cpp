@@ -6,43 +6,6 @@
 #include "../core/event/event.h"
 #include "../keys.h"
 
-#define VK_A 0x41
-#define VK_B 0x42
-#define VK_C 0x43
-#define VK_D 0x44
-#define VK_E 0x45
-#define VK_F 0x46
-#define VK_G 0x47
-#define VK_H 0x48
-#define VK_I 0x49
-#define VK_J 0x4A
-#define VK_K 0x4B
-#define VK_L 0x4C
-#define VK_M 0x4D
-#define VK_N 0x4E
-#define VK_O 0x4F
-#define VK_P 0x50
-#define VK_Q 0x51
-#define VK_R 0x52
-#define VK_S 0x53
-#define VK_T 0x54
-#define VK_U 0x55
-#define VK_V 0x56
-#define VK_W 0x57
-#define VK_X 0x58
-#define VK_Y 0x59
-#define VK_Z 0x5A
-#define VK_0 0x30
-#define VK_1 0x31
-#define VK_2 0x32
-#define VK_3 0x33
-#define VK_4 0x34
-#define VK_5 0x35
-#define VK_6 0x36
-#define VK_7 0x37
-#define VK_8 0x38
-#define VK_9 0x39
-
 bool win32_keymap_init()
 {
 	Array* keymap = (Array*)array_create("array_keymap", 256, sizeof(int16_t));
@@ -53,46 +16,47 @@ bool win32_keymap_init()
 	ekeys ek = ek_unknown;
 
 #define MAP_KEY(VK, EK) ek = EK; array_add(keymap, VK, &ek)
-
 	MAP_KEY(VK_LBUTTON, ek_lmouse);
 	MAP_KEY(VK_RBUTTON, ek_rmouse);
 	MAP_KEY(VK_MBUTTON, ek_mmouse);
-	MAP_KEY(VK_A, ek_a);
-	MAP_KEY(VK_B, ek_b);
-	MAP_KEY(VK_C, ek_c);
-	MAP_KEY(VK_D, ek_d);
-	MAP_KEY(VK_E, ek_e);
-	MAP_KEY(VK_F, ek_f);
-	MAP_KEY(VK_G, ek_g);
-	MAP_KEY(VK_H, ek_h);
-	MAP_KEY(VK_I, ek_i);
-	MAP_KEY(VK_J, ek_j);
-	MAP_KEY(VK_K, ek_k);
-	MAP_KEY(VK_L, ek_l);
-	MAP_KEY(VK_M, ek_m);
-	MAP_KEY(VK_N, ek_n);
-	MAP_KEY(VK_O, ek_o);
-	MAP_KEY(VK_P, ek_p);
-	MAP_KEY(VK_Q, ek_q);
-	MAP_KEY(VK_R, ek_r);
-	MAP_KEY(VK_S, ek_s);
-	MAP_KEY(VK_T, ek_t);
-	MAP_KEY(VK_U, ek_u);
-	MAP_KEY(VK_V, ek_v);
-	MAP_KEY(VK_W, ek_w);
-	MAP_KEY(VK_X, ek_x);
-	MAP_KEY(VK_Y, ek_y);
-	MAP_KEY(VK_Z, ek_z);
-	MAP_KEY(VK_0, ek_0);
-	MAP_KEY(VK_1, ek_1);
-	MAP_KEY(VK_2, ek_2);
-	MAP_KEY(VK_3, ek_3);
-	MAP_KEY(VK_4, ek_4);
-	MAP_KEY(VK_5, ek_5);
-	MAP_KEY(VK_6, ek_6);
-	MAP_KEY(VK_7, ek_7);
-	MAP_KEY(VK_8, ek_8);
-	MAP_KEY(VK_9, ek_9);
+
+	MAP_KEY('A', ek_a);
+	MAP_KEY('B', ek_b);
+	MAP_KEY('C', ek_c);
+	MAP_KEY('D', ek_d);
+	MAP_KEY('E', ek_e);
+	MAP_KEY('F', ek_f);
+	MAP_KEY('G', ek_g);
+	MAP_KEY('H', ek_h);
+	MAP_KEY('I', ek_i);
+	MAP_KEY('J', ek_j);
+	MAP_KEY('K', ek_k);
+	MAP_KEY('L', ek_l);
+	MAP_KEY('M', ek_m);
+	MAP_KEY('N', ek_n);
+	MAP_KEY('O', ek_o);
+	MAP_KEY('P', ek_p);
+	MAP_KEY('Q', ek_q);
+	MAP_KEY('R', ek_r);
+	MAP_KEY('S', ek_s);
+	MAP_KEY('T', ek_t);
+	MAP_KEY('U', ek_u);
+	MAP_KEY('V', ek_v);
+	MAP_KEY('W', ek_w);
+	MAP_KEY('X', ek_x);
+	MAP_KEY('Y', ek_y);
+	MAP_KEY('Z', ek_z);
+	MAP_KEY('0', ek_0);
+	MAP_KEY('1', ek_1);
+	MAP_KEY('2', ek_2);
+	MAP_KEY('3', ek_3);
+	MAP_KEY('4', ek_4);
+	MAP_KEY('5', ek_5);
+	MAP_KEY('6', ek_6);
+	MAP_KEY('7', ek_7);
+	MAP_KEY('8', ek_8);
+	MAP_KEY('9', ek_9);
+
 	MAP_KEY(VK_NUMPAD0, ek_numpad0);
 	MAP_KEY(VK_NUMPAD1, ek_numpad1);
 	MAP_KEY(VK_NUMPAD2, ek_numpad2);
@@ -103,6 +67,7 @@ bool win32_keymap_init()
 	MAP_KEY(VK_NUMPAD7, ek_numpad7);
 	MAP_KEY(VK_NUMPAD8, ek_numpad8);
 	MAP_KEY(VK_NUMPAD9, ek_numpad9);
+
 	MAP_KEY(VK_F1,  ek_f1);
 	MAP_KEY(VK_F2,  ek_f2);
 	MAP_KEY(VK_F3,  ek_f3);
@@ -115,10 +80,12 @@ bool win32_keymap_init()
 	MAP_KEY(VK_F10, ek_f10);
 	MAP_KEY(VK_F11, ek_f11);
 	MAP_KEY(VK_F12, ek_f12);
+
 	MAP_KEY(VK_UP,    ek_up);
 	MAP_KEY(VK_DOWN,  ek_down);
 	MAP_KEY(VK_LEFT,  ek_left);
-	MAP_KEY(VK_RIGHT, ek_right);	
+	MAP_KEY(VK_RIGHT, ek_right);
+
 	MAP_KEY(VK_RETURN,  ek_enter);
 	MAP_KEY(VK_ESCAPE,  ek_esc);
 	MAP_KEY(VK_SPACE,   ek_space);
@@ -133,6 +100,7 @@ bool win32_keymap_init()
 	MAP_KEY(VK_END,     ek_end);
 	MAP_KEY(VK_HOME,    ek_home);
 	MAP_KEY(VK_DECIMAL, ek_decimal);
+
 	MAP_KEY(VK_OEM_1,      ek_semicolon);
 	MAP_KEY(VK_OEM_2,      ek_slash);
 	MAP_KEY(VK_OEM_3,      ek_tilde);
@@ -144,12 +112,12 @@ bool win32_keymap_init()
 	MAP_KEY(VK_OEM_PERIOD, ek_period);
 	MAP_KEY(VK_OEM_PLUS,   ek_equals);
 	MAP_KEY(VK_OEM_COMMA,  ek_comma);
+
 	MAP_KEY(VK_MULTIPLY, ek_multiply);
 	MAP_KEY(VK_SUBTRACT, ek_subtract);
 	MAP_KEY(VK_ADD,      ek_add);
 	MAP_KEY(VK_DIVIDE,   ek_divide);
-	MAP_KEY(VK_E,        ek_equals);
-
+	//MAP_KEY(VK_E,        ek_equals);
 #undef MAP_KEY
 
 	return true;
@@ -173,8 +141,10 @@ int16_t keymap_get(uint16_t in_virtual_key)
 		printf("unknown key: %d\n", in_virtual_key);
 		return ek_unknown;
 	}
+	
+	int16_t key = *((int16_t*)array_get(keymap, in_virtual_key));
 
-	return *( (int16_t*)array_get(keymap, in_virtual_key) );
+	return key;
 }
 
 int8_t modifiers_get()
@@ -281,6 +251,7 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 
 	return DefWindowProc(InHwnd, InMsg, InWParam, InLParam);
 };
+
 
 struct win32data_s
 {

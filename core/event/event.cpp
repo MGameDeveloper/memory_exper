@@ -381,14 +381,14 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 	actionmsgdef  *actionmsg     = nullptr;
 	msghandlerdef *msghandler    = nullptr;
 	uint16_t       msg           = 0;
-
+	
 	if (user_actions && user_handlers)
 	{
 		actionmsg = (actionmsgdef*)array_get(user_actions, ev->key);
 		if (actionmsg)
 		{
 			msg = actionmsg->msg[ev->state][ev->mods];
-
+	
 			msghandler = (msghandlerdef*)array_get(user_handlers, msg);
 			if (msghandler && msghandler->handler.action_handler)
 			{

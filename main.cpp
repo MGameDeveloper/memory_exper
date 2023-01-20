@@ -64,7 +64,7 @@ int main()
 	inputlayout_init(0, actionid_count);
 
 	// actions bindings
-	bind_action_msg(einputuser_0, ek_d, keystate_pressed, actionid_dodge);
+	bind_action_msg(einputuser_0, ek_e, keystate_pressed, actionid_dodge);
 	bind_action_msg(einputuser_0, ek_z, keystate_pressed, actionid_useitem);
 	bind_action_msg(einputuser_0, ek_f, keystate_pressed, actionid_attack);
 	bind_action_msg(einputuser_0, ek_x, keystate_pressed, actionid_shield);
@@ -95,10 +95,10 @@ int main()
 		platform_run();
 
 		// engine update here
-		float new_y_pos = player_y_pos + player_y_vel;
-		printf("player_y_pos: %.2f\n", new_y_pos);
+		//float new_y_pos = player_y_pos + player_y_vel;
+		//printf("player_y_pos: %.2f\n", new_y_pos);
 		//printf("player_y_vel: %.2f\n", player_y_vel);
-		player_y_vel = 0;
+		//player_y_vel = 0;
 	}
 
 	platform_deinit();
