@@ -25,23 +25,26 @@ static float player_y_vel = 0.0f;
 // Axis handlers
 void move_forward(float invalue)
 {
-	//printf("forward: %.2f\n", invalue);
-	player_y_vel += invalue;
+	printf("forward: %.2f\n", invalue);
+	//player_y_vel += invalue;
 }
 void move_sideward(float invalue)
 {
-	//printf("sideward: %.2f\n", invalue);
-	player_y_vel += invalue;
+	printf("sideward: %.2f\n", invalue);
+	//player_y_vel += invalue;
 }
 
 // Action handlers
 void dodge()
 {
 	printf("Dodge\n");
+	controller_vibrate_start(einputuser_0, 32000, 16000);
 }
+
 void useitem()
 {
 	printf("Useitem\n");
+	controller_vibrate_end(einputuser_0);
 }
 void attack()
 {
@@ -65,7 +68,9 @@ int main()
 
 	// actions bindings
 	bind_action_msg(einputuser_0, ek_e, keystate_pressed, actionid_dodge);
-	bind_action_msg(einputuser_0, ek_z, keystate_pressed, actionid_useitem);
+	bind_action_msg(einputuser_0, ek_r, keystate_pressed, actionid_useitem);
+	bind_action_msg(einputuser_0, ek_cross, keystate_pressed, actionid_dodge);
+	bind_action_msg(einputuser_0, ek_square, keystate_pressed, actionid_useitem);
 	bind_action_msg(einputuser_0, ek_f, keystate_pressed, actionid_attack);
 	bind_action_msg(einputuser_0, ek_x, keystate_pressed, actionid_shield);
 
@@ -78,6 +83,10 @@ int main()
 	bind_axis_msg(einputuser_0, ek_right, axisid_sideward,  1.f);
 	bind_axis_msg(einputuser_0, ek_a,     axisid_sideward, -1.f);
 	bind_axis_msg(einputuser_0, ek_d,     axisid_sideward,  1.f);
+	bind_axis_msg(einputuser_0, ek_lanalogup,    axisid_forward,  -1.f);
+	bind_axis_msg(einputuser_0, ek_lanalogdown,  axisid_forward,   1.f);
+	bind_axis_msg(einputuser_0, ek_lanalogleft,  axisid_sideward, -1.f);
+	bind_axis_msg(einputuser_0, ek_lanalogright, axisid_sideward,  1.f);
 
 	// msg handlers
 	bind_action_handler(einputuser_0, actionid_dodge,   dodge);
@@ -90,6 +99,8 @@ int main()
 
 	mem_display_info();
 
+	float duration = 0.0f;
+
 	while (!platform_closing())
 	{
 		platform_run();
@@ -99,6 +110,14 @@ int main()
 		//printf("player_y_pos: %.2f\n", new_y_pos);
 		//printf("player_y_vel: %.2f\n", player_y_vel);
 		//player_y_vel = 0;
+
+		//if (duration > 100.f)
+		//{
+		//	controller_vibrate_end(einputuser_0);
+		//	duration = 0.0f;
+		//}
+		//printf("duration: %.2f\n", duration);
+		//duration += 0.0001f;
 	}
 
 	platform_deinit();

@@ -445,7 +445,28 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 
 	event_gpad* ev = &inev->gpad;
 
-	printf("Controller[ %d ]: %s | %s | %.2f\n", useridx, keyname(ev->button), keystatename(ev->state), ev->value);
+	//printf("Controller[ %d ]: %s | %s | %.2f\n", useridx, keyname(ev->button), keystatename(ev->state), ev->value);
+
+	Array* user_actions = user_actionlayout[useridx];
+	Array* user_handlers = user_inputhandlers[useridx];
+	actionmsgdef* actionmsg = nullptr;
+	msghandlerdef* msghandler = nullptr;
+	uint16_t       msg = 0;
+	
+	if (user_actions && user_handlers)
+	{
+		actionmsg = (actionmsgdef*)array_get(user_actions, ev->button);
+		if (actionmsg)
+		{
+			msg = actionmsg->msg[ev->state][emodkey_unknown];
+	
+			msghandler = (msghandlerdef*)array_get(user_handlers, msg);
+			if (msghandler && msghandler->handler.action_handler)
+			{
+				msghandler->handler.action_handler();
+			}
+		}
+	}
 }
 /**************************************
 *    END: EVENT HANDLERS              *
@@ -571,7 +592,28 @@ void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate, floa
 
 void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue)
 {
+	if (inuserid < 0 || inuserid > 3)
+		return;
 
+	//Queue* ev_queue = user_eventqueue[inuserid];
+	key_detail* kd = keydetail_get(inuserid, inaxis);
+
+	if (!kd)
+		return;
+
+
+	kd->value = invalue;
+
+//	if (!ev_queue)
+//		return;
+
+	//eventdef ev;
+	//ev.type = eventtype_gpad;
+	//ev.gpad.userid = inuserid;
+	//ev.gpad.button = inaxis;
+	//ev.gpad.value = invalue;
+	//
+	//queue_add(ev_queue, &ev);
 }
 
 void onevent_mouse_move(float inx, float iny)
