@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #include "win32.h"
 #include "../utils/Memory.h"
 #include "../utils/Containers/Array.h"
@@ -161,6 +160,172 @@ int8_t modifiers_get()
 *         END: HELPER FUNCTION         *
 ****************************************/
 
+
+enum egamepadkey
+{
+	egk_cross,
+	egk_circle,
+	egk_triangle,
+	egk_square,
+	egk_dpadup,
+	egk_dpaddown,
+	egk_dpadleft,
+	egk_dpadright,
+	egk_L1,
+	egk_L2,
+	egk_L3,
+	egk_R1,
+	egk_R2,
+	egk_R3,
+	egk_start,
+	egk_select,
+	egk_lanalogup,
+	egk_lanalogdown,
+	egk_lanalogright,
+	egk_lanalogleft,
+	egk_ranalogup,
+	egk_ranalogdown,
+	egk_ranalogright,
+	egk_ranalogleft,
+
+	egk_count
+};
+static int16_t controllerkeymap[egk_count];
+
+struct controllerdef
+{
+	struct statedef
+	{
+		struct axesdef
+		{
+			float lanalog_x = 0.0f;
+			float lanalog_y = 0.0f;
+			float ranalog_x = 0.0f;
+			float ranalog_y = 0.0f;
+			float l2 = 0.0f;
+			float r2 = 0.0f;
+		};
+
+		float   buttons_repeat_counter[egk_count];
+		axesdef axes;
+		bool    buttons[egk_count];
+	};
+
+	statedef state;
+	DWORD    laststate = 0;
+	bool     should_be_updated = true;
+};
+controllerdef controllers[4];
+
+DWORD           is_gamepad_connected = 0;
+XINPUT_STATE    xinput_state;
+XINPUT_GAMEPAD* xinput_gamepad = nullptr;
+controllerdef*  controller = nullptr;
+bool            xinput_buttons[egk_count];
+
+
+void controllers_devices_init()
+{
+	controllerkeymap[egk_cross]        = ek_cross;
+	controllerkeymap[egk_circle]       = ek_circle;
+	controllerkeymap[egk_triangle]     = ek_triangle;
+	controllerkeymap[egk_square]       = ek_square;
+	controllerkeymap[egk_dpadup]       = ek_dpadup;
+	controllerkeymap[egk_dpaddown]     = ek_dpaddown;
+	controllerkeymap[egk_dpadleft]     = ek_dpadleft;
+	controllerkeymap[egk_dpadright]    = ek_dpadright;
+	controllerkeymap[egk_L1]           = ek_L1;
+	controllerkeymap[egk_L2]           = ek_L2;
+	controllerkeymap[egk_L3]           = ek_L3;
+	controllerkeymap[egk_R1]           = ek_R1;
+	controllerkeymap[egk_R2]           = ek_R2;
+	controllerkeymap[egk_R3]           = ek_R3;
+	controllerkeymap[egk_start]        = ek_start;
+	controllerkeymap[egk_select]       = ek_select;
+	controllerkeymap[egk_lanalogup]    = ek_lanalogup;
+	controllerkeymap[egk_lanalogdown]  = ek_lanalogdown;
+	controllerkeymap[egk_lanalogright] = ek_lanalogright;
+	controllerkeymap[egk_lanalogleft]  = ek_lanalogleft;
+	controllerkeymap[egk_ranalogup]    = ek_ranalogup;
+	controllerkeymap[egk_ranalogdown]  = ek_ranalogdown;
+	controllerkeymap[egk_ranalogright] = ek_ranalogright;
+	controllerkeymap[egk_ranalogleft]  = ek_ranalogleft;
+
+	memset(xinput_buttons, 0, sizeof(bool) * egk_count);
+	memset(&xinput_state, 0, sizeof(XINPUT_STATE));
+}
+
+void controllers_devices_process()
+{
+	for (uint8_t useridx = 0; useridx < 4; ++useridx)
+	{
+		controller = &controllers[useridx];
+
+		if (!controller->should_be_updated)
+			continue;
+
+		is_gamepad_connected = XInputGetState(useridx, &xinput_state);
+		if (is_gamepad_connected != 0)
+			controller->should_be_updated = false;
+
+		if (controller->laststate == xinput_state.dwPacketNumber) // state has not changed since last time queried
+			continue;
+
+		xinput_gamepad = &xinput_state.Gamepad;
+
+		xinput_buttons[egk_cross]        = xinput_gamepad->wButtons & XINPUT_GAMEPAD_A;
+		xinput_buttons[egk_circle]       = xinput_gamepad->wButtons & XINPUT_GAMEPAD_B;
+		xinput_buttons[egk_triangle]     = xinput_gamepad->wButtons & XINPUT_GAMEPAD_Y;
+		xinput_buttons[egk_square]       = xinput_gamepad->wButtons & XINPUT_GAMEPAD_X;
+		xinput_buttons[egk_dpadup]       = xinput_gamepad->wButtons & XINPUT_GAMEPAD_DPAD_UP;
+		xinput_buttons[egk_dpaddown]     = xinput_gamepad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+		xinput_buttons[egk_dpadleft]     = xinput_gamepad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
+		xinput_buttons[egk_dpadright]    = xinput_gamepad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+		xinput_buttons[egk_L1]           = xinput_gamepad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
+		xinput_buttons[egk_L3]           = xinput_gamepad->wButtons & XINPUT_GAMEPAD_LEFT_THUMB;
+		xinput_buttons[egk_R1]           = xinput_gamepad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
+		xinput_buttons[egk_R3]           = xinput_gamepad->wButtons & XINPUT_GAMEPAD_RIGHT_THUMB;
+		xinput_buttons[egk_start]        = xinput_gamepad->wButtons & XINPUT_GAMEPAD_START;
+		xinput_buttons[egk_select]       = xinput_gamepad->wButtons & XINPUT_GAMEPAD_BACK;
+		xinput_buttons[egk_L2]           = xinput_gamepad->bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+		xinput_buttons[egk_R2]           = xinput_gamepad->bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+		xinput_buttons[egk_lanalogup]    = xinput_gamepad->sThumbLY > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+		xinput_buttons[egk_lanalogdown]  = xinput_gamepad->sThumbLY < -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+		xinput_buttons[egk_lanalogright] = xinput_gamepad->sThumbLX > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+		xinput_buttons[egk_lanalogleft]  = xinput_gamepad->sThumbLX < -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+		xinput_buttons[egk_ranalogup]    = xinput_gamepad->sThumbRY > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+		xinput_buttons[egk_ranalogdown]  = xinput_gamepad->sThumbRY < -XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+		xinput_buttons[egk_ranalogright] = xinput_gamepad->sThumbRX > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+		xinput_buttons[egk_ranalogleft]  = xinput_gamepad->sThumbRX < -XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+
+		for (int8_t buttonidx = 0; buttonidx < egk_count; ++buttonidx)
+		{
+			if (!controller->state.buttons[buttonidx] && xinput_buttons[buttonidx])
+			{
+				onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_pressed, 0.0f);
+			}
+			else if (controller->state.buttons[buttonidx] && !xinput_buttons[buttonidx])
+			{
+				onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_released, 0.0f);
+			}
+			else if (controller->state.buttons[buttonidx] && xinput_buttons[buttonidx])
+			{
+				//onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_repeated, 0.0f);
+			}
+		}
+
+		memcpy(controller->state.buttons, xinput_buttons, sizeof(bool) * egk_count);
+	}
+}
+
+void check_controllers_devices()
+{
+	for (int8_t useridx = 0; useridx < 4; ++useridx)
+	{
+		controllers[useridx].should_be_updated = true;
+	}
+}
+
 LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 {
 	switch (InMsg)
@@ -245,7 +410,7 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 		break;
 
 	case WM_DEVICECHANGE:
-		// toggle gamepad to check all gamepads connections
+		check_controllers_devices();
 		break;
 	}
 
@@ -288,6 +453,8 @@ bool win32_init()
 		printf("event system initialization failed.\n");
 		return false;
 	}
+
+	controllers_devices_init(); // temporary should have its own header file
 
 	win32data.hinstance      = GetModuleHandle(NULL);
 	win32data.wnd_class_name = L"main_window";
@@ -345,6 +512,7 @@ void win32_run()
 		}
 	}
 
+	controllers_devices_process();
 	event_process();
 }
 

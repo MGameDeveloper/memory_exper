@@ -154,6 +154,30 @@ void input_debugging_stuff_init()
 	KEY_NAME(ek_add);
 	KEY_NAME(ek_divide);
 	KEY_NAME(ek_equals);
+	KEY_NAME(ek_cross);
+	KEY_NAME(ek_circle);
+	KEY_NAME(ek_triangle);
+	KEY_NAME(ek_square);
+	KEY_NAME(ek_dpadup);
+	KEY_NAME(ek_dpaddown);
+	KEY_NAME(ek_dpadleft);
+	KEY_NAME(ek_dpadright);
+	KEY_NAME(ek_L1);
+	KEY_NAME(ek_L2);
+	KEY_NAME(ek_L3);
+	KEY_NAME(ek_R1);
+	KEY_NAME(ek_R2);
+	KEY_NAME(ek_R3);
+	KEY_NAME(ek_start);
+	KEY_NAME(ek_select);
+	KEY_NAME(ek_lanalogup);
+	KEY_NAME(ek_lanalogdown);
+	KEY_NAME(ek_lanalogright);
+	KEY_NAME(ek_lanalogleft);
+	KEY_NAME(ek_ranalogup);
+	KEY_NAME(ek_ranalogdown);
+	KEY_NAME(ek_ranalogright);
+	KEY_NAME(ek_ranalogleft);
 #undef KEY_NAME
 
 #define KEY_STATE_NAME(KEY_STATE) keys_state_name[KEY_STATE] = #KEY_STATE
@@ -403,9 +427,9 @@ void mouse_event_handler(uint8_t useridx, eventdef* inev)
 	if (!inev)
 		return;
 
-	event_mouse* ms = &inev->mouse;
+	event_mouse* ev = &inev->mouse;
 
-	printf("button: %s | %s | %s \n", keyname(ms->button), keystatename(ms->state), modkeyname(ms->mods));
+	printf("button: %s | %s | %s \n", keyname(ev->button), keystatename(ev->state), modkeyname(ev->mods));
 
 	// loop through user_0 action map and invoke if nay
 
@@ -416,11 +440,12 @@ void mouse_event_handler(uint8_t useridx, eventdef* inev)
 
 void gpad_event_handler(uint8_t useridx, eventdef* inev)
 {
-	// get action from user through inev->gpad.useridx;
+	if (!inev)
+		return;
 
-	// or
+	event_gpad* ev = &inev->gpad;
 
-	// collect actions from user through inev->gpad.useridx;
+	printf("Controller[ %d ]: %s | %s | %.2f\n", useridx, keyname(ev->button), keystatename(ev->state), ev->value);
 }
 /**************************************
 *    END: EVENT HANDLERS              *
@@ -517,9 +542,31 @@ void onevent_mouse_button(int8_t inuserid, int16_t inbutton, int8_t instate, int
 	queue_add(ev_queue, &ev);
 }
 
-void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t state, float intimestamp)
+void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate, float intimestamp)
 {
+	if (inuserid < 0 || inuserid > 3)
+		return;
 
+	Queue* ev_queue = user_eventqueue[inuserid];
+	key_detail* kd = keydetail_get(inuserid, inbutton);
+
+	if (!kd)
+		return;
+
+	kd->state = instate;
+	kd->timestamp = intimestamp;
+
+	if (!ev_queue)
+		return;
+
+	eventdef ev;
+	ev.type        = eventtype_gpad;
+	ev.gpad.button = inbutton;
+	ev.gpad.state  = instate;
+	ev.gpad.userid = inuserid;
+	ev.timestamp   = intimestamp;
+
+	queue_add(ev_queue, &ev);
 }
 
 void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue)
