@@ -15,25 +15,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="platform.h">
+    <ClInclude Include="core\platform\platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="win32\win32.h">
+    <ClInclude Include="core\platform\win32\win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="keys.h">
+    <ClInclude Include="core\input\keys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\Containers\Array.h">
+    <ClInclude Include="core\utils\Containers\Array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\Containers\Queue.h">
+    <ClInclude Include="core\utils\Containers\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\Containers\Stack.h">
+    <ClInclude Include="core\utils\Containers\Stack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\Memory.h">
+    <ClInclude Include="core\utils\Memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common.h">
@@ -42,42 +42,45 @@
     <ClInclude Include="core\event\event.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="userinput.h">
+    <ClInclude Include="core\input\userinput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="win32\xinput_interface.h">
+    <ClInclude Include="core\platform\win32\xinput_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="time.h">
+    <ClInclude Include="core\platform\time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\input\input_binding_test.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="win32\win32.cpp">
+    <ClCompile Include="core\platform\win32\win32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="platform.cpp">
+    <ClCompile Include="core\platform\platform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\Containers\Array.cpp">
+    <ClCompile Include="core\utils\Containers\Array.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\Containers\Queue.cpp">
+    <ClCompile Include="core\utils\Containers\Queue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\Containers\Stack.cpp">
+    <ClCompile Include="core\utils\Containers\Stack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\Memory.cpp">
+    <ClCompile Include="core\utils\Memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="core\event\event.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="win32\xinput_interface.cpp">
+    <ClCompile Include="core\platform\win32\xinput_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

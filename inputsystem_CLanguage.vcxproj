@@ -129,27 +129,28 @@
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="core\event\event.h" />
-    <ClInclude Include="platform.h" />
-    <ClInclude Include="userinput.h" />
-    <ClInclude Include="utils\Containers\Array.h" />
-    <ClInclude Include="utils\Containers\Queue.h" />
-    <ClInclude Include="utils\Containers\Stack.h" />
-    <ClInclude Include="utils\Memory.h" />
-    <ClInclude Include="keys.h" />
-    <ClInclude Include="time.h" />
-    <ClInclude Include="win32\win32.h" />
-    <ClInclude Include="win32\xinput_interface.h" />
+    <ClInclude Include="core\platform\platform.h" />
+    <ClInclude Include="tests\input\input_binding_test.h" />
+    <ClInclude Include="core\input\userinput.h" />
+    <ClInclude Include="core\utils\Containers\Array.h" />
+    <ClInclude Include="core\utils\Containers\Queue.h" />
+    <ClInclude Include="core\utils\Containers\Stack.h" />
+    <ClInclude Include="core\utils\Memory.h" />
+    <ClInclude Include="core\input\keys.h" />
+    <ClInclude Include="core\platform\time.h" />
+    <ClInclude Include="core\platform\win32\win32.h" />
+    <ClInclude Include="core\platform\win32\xinput_interface.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\event\event.cpp" />
-    <ClCompile Include="platform.cpp" />
+    <ClCompile Include="core\platform\platform.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="utils\Containers\Array.cpp" />
-    <ClCompile Include="utils\Containers\Queue.cpp" />
-    <ClCompile Include="utils\Containers\Stack.cpp" />
-    <ClCompile Include="utils\Memory.cpp" />
-    <ClCompile Include="win32\win32.cpp" />
-    <ClCompile Include="win32\xinput_interface.cpp" />
+    <ClCompile Include="core\utils\Containers\Array.cpp" />
+    <ClCompile Include="core\utils\Containers\Queue.cpp" />
+    <ClCompile Include="core\utils\Containers\Stack.cpp" />
+    <ClCompile Include="core\utils\Memory.cpp" />
+    <ClCompile Include="core\platform\win32\win32.cpp" />
+    <ClCompile Include="core\platform\win32\xinput_interface.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

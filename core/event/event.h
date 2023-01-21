@@ -38,7 +38,7 @@ struct event_gpad
 struct eventdef
 {
 	eventtype type      = eventtype_unknown;
-	float     timestamp = 0.0f;
+	//float     timestamp = 0.0f;
 
 	union
 	{

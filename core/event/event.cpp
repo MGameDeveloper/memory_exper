@@ -398,7 +398,7 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 
 	event_kboard* ev = &inev->kboard;
 
-	printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
+	//printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
 
 	Array         *user_actions  = user_actionlayout[useridx];
 	Array         *user_handlers = user_inputhandlers[useridx];
@@ -411,8 +411,11 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 		actionmsg = (actionmsgdef*)array_get(user_actions, ev->key);
 		if (actionmsg)
 		{
-			msg = actionmsg->msg[ev->state][ev->mods];
-	
+			if (actionmsg->msg[keystate_repeated][ev->mods] && ev->state == keystate_pressed)
+				msg = actionmsg->msg[keystate_repeated][ev->mods];
+			else
+				msg = actionmsg->msg[ev->state][ev->mods];
+
 			msghandler = (msghandlerdef*)array_get(user_handlers, msg);
 			if (msghandler && msghandler->handler.action_handler)
 			{
@@ -447,26 +450,29 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 
 	printf("Controller[ %d ]: %s | %s | %.2f\n", useridx, keyname(ev->button), keystatename(ev->state), ev->value);
 
-	//Array* user_actions = user_actionlayout[useridx];
-	//Array* user_handlers = user_inputhandlers[useridx];
-	//actionmsgdef* actionmsg = nullptr;
-	//msghandlerdef* msghandler = nullptr;
-	//uint16_t       msg = 0;
-	//
-	//if (user_actions && user_handlers)
-	//{
-	//	actionmsg = (actionmsgdef*)array_get(user_actions, ev->button);
-	//	if (actionmsg)
-	//	{
-	//		msg = actionmsg->msg[ev->state][emodkey_unknown];
-	//
-	//		msghandler = (msghandlerdef*)array_get(user_handlers, msg);
-	//		if (msghandler && msghandler->handler.action_handler)
-	//		{
-	//			msghandler->handler.action_handler();
-	//		}
-	//	}
-	//}
+	Array* user_actions = user_actionlayout[useridx];
+	Array* user_handlers = user_inputhandlers[useridx];
+	actionmsgdef* actionmsg = nullptr;
+	msghandlerdef* msghandler = nullptr;
+	uint16_t       msg = 0;
+	
+	if (user_actions && user_handlers)
+	{
+		actionmsg = (actionmsgdef*)array_get(user_actions, ev->button);
+		if (actionmsg)
+		{
+			if (actionmsg->msg[keystate_repeated][emodkey_unknown] && ev->state == keystate_pressed)
+				msg = actionmsg->msg[keystate_repeated][emodkey_unknown];
+			else
+				msg = actionmsg->msg[ev->state][emodkey_unknown];
+	
+			msghandler = (msghandlerdef*)array_get(user_handlers, msg);
+			if (msghandler && msghandler->handler.action_handler)
+			{
+				msghandler->handler.action_handler();
+			}
+		}
+	}
 }
 /**************************************
 *    END: EVENT HANDLERS              *
@@ -520,14 +526,13 @@ void onevent_kboard(int8_t inuserid, int16_t inkey, int8_t instate, int8_t inmod
 
 	kd->state     = instate;
 	kd->mods      = inmods;
-	kd->timestamp = 0.0;
+	kd->timestamp = time_get_seconds();
 
 	if (!ev_queue)
 		return;
 
 	eventdef ev;
 	ev.type         = eventtype_kboard;
-	ev.timestamp    = 0.0;
 	ev.kboard.key   = inkey;
 	ev.kboard.state = instate;
 	ev.kboard.mods  = inmods;
@@ -546,19 +551,20 @@ void onevent_mouse_button(int8_t inuserid, int16_t inbutton, int8_t instate, int
 	if (!kd)
 		return;
 
+	double timestamp = 
+
 	kd->state     = instate;
 	kd->mods      = inmods;
-	kd->timestamp = 0.0;
+	kd->timestamp = time_get_seconds();
 
 	if (!ev_queue)
 		return;
 
 	eventdef ev;
 	ev.type         = eventtype_mouse;
-	ev.timestamp    = 0.0;
 	ev.mouse.button = inbutton;
-	ev.mouse.state  = instate;
-	ev.mouse.mods   = inmods;
+	ev.mouse.state  = kd->state;
+	ev.mouse.mods   = kd->mods;
 
 	queue_add(ev_queue, &ev);
 }
@@ -575,7 +581,7 @@ void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate)
 		return;
 
 	kd->state = instate;
-	kd->timestamp = 0.0;
+	kd->timestamp = time_get_seconds();
 
 	if (!ev_queue)
 		return;
@@ -585,7 +591,6 @@ void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate)
 	ev.gpad.button = inbutton;
 	ev.gpad.state  = instate;
 	ev.gpad.userid = inuserid;
-	ev.timestamp   = 0.0;
 
 	queue_add(ev_queue, &ev);
 }

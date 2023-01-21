@@ -1,5 +1,5 @@
 
-#include "platform.h"
+#include "core/platform/platform.h"
 
 #include "common.h"
 
@@ -67,8 +67,8 @@ int main()
 	inputlayout_init(0, actionid_count);
 
 	// actions bindings
-	bind_action_msg(einputuser_0, ek_e, keystate_pressed, actionid_dodge);
-	bind_action_msg(einputuser_0, ek_r, keystate_pressed, actionid_useitem);
+	bind_action_msg(einputuser_0, ek_e, keystate_repeated, actionid_dodge);
+	bind_action_msg(einputuser_0, ek_r, keystate_repeated, actionid_useitem);
 	bind_action_msg(einputuser_0, ek_cross, keystate_pressed, actionid_dodge);
 	bind_action_msg(einputuser_0, ek_square, keystate_repeated, actionid_useitem);
 	bind_action_msg(einputuser_0, ek_f, keystate_pressed, actionid_attack);
