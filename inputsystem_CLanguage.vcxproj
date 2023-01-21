@@ -136,6 +136,7 @@
     <ClInclude Include="utils\Containers\Stack.h" />
     <ClInclude Include="utils\Memory.h" />
     <ClInclude Include="keys.h" />
+    <ClInclude Include="time.h" />
     <ClInclude Include="win32\win32.h" />
     <ClInclude Include="win32\xinput_interface.h" />
   </ItemGroup>

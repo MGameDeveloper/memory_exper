@@ -162,6 +162,63 @@ int8_t modifiers_get()
 ****************************************/
 
 
+/***************************************
+*         BEGIN: TIME.H IMPL           *
+****************************************/
+struct timedef
+{
+	int64_t frequency = 0;
+	int64_t begin = 0;
+	int64_t end = 0;
+	double  elapsedtime = 0;
+};
+timedef win32_time;
+
+LARGE_INTEGER large_integer;
+
+bool win32_time_init()
+{
+	if (!QueryPerformanceFrequency(&large_integer))
+		return false;
+
+	win32_time.frequency = large_integer.QuadPart;
+
+	return true;
+}
+
+void time_begin()
+{
+	QueryPerformanceCounter(&large_integer);
+	win32_time.begin = large_integer.QuadPart;
+}
+
+void time_end()
+{
+	QueryPerformanceCounter(&large_integer);
+	win32_time.end = large_integer.QuadPart;
+
+	win32_time.elapsedtime = win32_time.end - win32_time.begin;
+	win32_time.elapsedtime /= win32_time.frequency;
+}
+
+double time_get_lastframe_dt()
+{
+	return double(win32_time.elapsedtime);
+}
+
+double time_get_seconds()
+{
+	QueryPerformanceCounter(&large_integer);
+
+	double time = large_integer.QuadPart - win32_time.begin;
+	time /= win32_time.frequency;
+
+	return double(time);
+}
+/***************************************
+*         END: TIME.H IMPL             *
+****************************************/
+
 LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 {
 	switch (InMsg)
@@ -193,47 +250,47 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 				keystate = keystate_pressed;
 		}
 		
-		onevent_kboard(0, keymap_get(InWParam), keystate, modifiers_get(), 0.0f);
+		onevent_kboard(0, keymap_get(InWParam), keystate, modifiers_get(), time_get_seconds());
 	}
 	break;
 
 	case WM_LBUTTONDOWN:
-		onevent_mouse_button(0, ek_lmouse, keystate_pressed, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_lmouse, keystate_pressed, modifiers_get(), time_get_seconds());
 		break;
 	case WM_LBUTTONUP:
-		onevent_mouse_button(0, ek_lmouse, keystate_released, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_lmouse, keystate_released, modifiers_get(), time_get_seconds());
 		break;
 	case WM_LBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_lmouse, keystate_doubleclick, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_lmouse, keystate_doubleclick, modifiers_get(), time_get_seconds());
 		break;
 
 	case WM_RBUTTONDOWN:
-		onevent_mouse_button(0, ek_rmouse, keystate_pressed, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_rmouse, keystate_pressed, modifiers_get(), time_get_seconds());
 		break;
 	case WM_RBUTTONUP:
-		onevent_mouse_button(0, ek_rmouse, keystate_released, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_rmouse, keystate_released, modifiers_get(), time_get_seconds());
 		break;
 	case WM_RBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_rmouse, keystate_doubleclick, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_rmouse, keystate_doubleclick, modifiers_get(), time_get_seconds());
 		break;
 
 	case WM_MBUTTONDOWN:
-		onevent_mouse_button(0, ek_mmouse, keystate_pressed, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_mmouse, keystate_pressed, modifiers_get(), time_get_seconds());
 		break;
 	case WM_MBUTTONUP:
-		onevent_mouse_button(0, ek_mmouse, keystate_released, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_mmouse, keystate_released, modifiers_get(), time_get_seconds());
 		break;
 	case WM_MBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_mmouse, keystate_doubleclick, modifiers_get(), 0.0f);
+		onevent_mouse_button(0, ek_mmouse, keystate_doubleclick, modifiers_get(), time_get_seconds());
 		break;
 
 	case WM_MOUSEWHEEL:
 	{
 		SHORT delta = GET_WHEEL_DELTA_WPARAM(InWParam);
 		if (delta < 0)
-			onevent_mouse_button(0, ek_mouse_scrolldown, keystate_pressed, modifiers_get(), 0.0f);
+			onevent_mouse_button(0, ek_mouse_scrolldown, keystate_pressed, modifiers_get(), time_get_seconds());
 		else
-			onevent_mouse_button(0, ek_mouse_scrollup,   keystate_pressed, modifiers_get(), 0.0f);
+			onevent_mouse_button(0, ek_mouse_scrollup,   keystate_pressed, modifiers_get(), time_get_seconds());
 	}
 		break;
 
@@ -275,6 +332,12 @@ bool win32_init()
 	if (!mem_init(MEM_SIZE_MB(2)))
 	{
 		printf("memory initialization failed.\n");
+		return false;
+	}
+
+	if (!win32_time_init())
+	{
+		printf("win32 time initialization failed.\n");
 		return false;
 	}
 

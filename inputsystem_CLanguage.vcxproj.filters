@@ -48,6 +48,9 @@
     <ClInclude Include="win32\xinput_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="win32\win32.cpp">

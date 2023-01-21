@@ -4,6 +4,7 @@
 #include "xinput_interface.h"
 #include "../core/event/event.h"
 #include "../keys.h"
+#include "../time.h"
 
 #pragma comment(lib, "xinput.lib")
 
@@ -190,6 +191,8 @@ void xinput_process()
 		xinput_buttons[egk_ranalogdown] = xinput_gamepad->sThumbRY < -XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
 		xinput_buttons[egk_ranalogright] = xinput_gamepad->sThumbRX > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
 		xinput_buttons[egk_ranalogleft] = xinput_gamepad->sThumbRX < -XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+
+		double timestamp = time_get_seconds();
 
 		onevent_gpad_axis(useridx, controllerkeymap[egk_lanalogup], get_controller_axis_value(xinput_gamepad->sThumbLY, normalize_axis_value(xinput_gamepad->sThumbLY), XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE));
 		onevent_gpad_axis(useridx, controllerkeymap[egk_lanalogdown], get_controller_axis_value(xinput_gamepad->sThumbLY, normalize_axis_value(xinput_gamepad->sThumbLY), XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE));

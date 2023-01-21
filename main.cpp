@@ -99,25 +99,14 @@ int main()
 
 	mem_display_info();
 
-	float duration = 0.0f;
-
 	while (!platform_closing())
 	{
+		time_begin();
+
 		platform_run();
 
-		// engine update here
-		//float new_y_pos = player_y_pos + player_y_vel;
-		//printf("player_y_pos: %.2f\n", new_y_pos);
-		//printf("player_y_vel: %.2f\n", player_y_vel);
-		//player_y_vel = 0;
 
-		//if (duration > 100.f)
-		//{
-		//	controller_vibrate_end(einputuser_0);
-		//	duration = 0.0f;
-		//}
-		//printf("duration: %.2f\n", duration);
-		//duration += 0.0001f;
+		time_end();
 	}
 
 	platform_deinit();
