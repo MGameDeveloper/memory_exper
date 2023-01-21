@@ -64,10 +64,12 @@ struct controllerdef
 };
 controllerdef controllers[4];
 
-DWORD           is_gamepad_connected = 0;
 XINPUT_STATE    xinput_state;
-XINPUT_GAMEPAD* xinput_gamepad = nullptr;
-controllerdef*  controller = nullptr;
+DWORD           is_gamepad_connected      = 0;
+XINPUT_GAMEPAD* xinput_gamepad            = nullptr;
+controllerdef*  controller                = nullptr;
+float           button_repeat_init_value  = 0.3f;
+float           button_repeat_delay_value = 0.1f;
 bool            xinput_buttons[egk_count];
 
 
@@ -192,8 +194,6 @@ void xinput_process()
 		xinput_buttons[egk_ranalogright] = xinput_gamepad->sThumbRX > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
 		xinput_buttons[egk_ranalogleft] = xinput_gamepad->sThumbRX < -XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
 
-		double timestamp = time_get_seconds();
-
 		onevent_gpad_axis(useridx, controllerkeymap[egk_lanalogup], get_controller_axis_value(xinput_gamepad->sThumbLY, normalize_axis_value(xinput_gamepad->sThumbLY), XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE));
 		onevent_gpad_axis(useridx, controllerkeymap[egk_lanalogdown], get_controller_axis_value(xinput_gamepad->sThumbLY, normalize_axis_value(xinput_gamepad->sThumbLY), XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE));
 		onevent_gpad_axis(useridx, controllerkeymap[egk_lanalogleft], get_controller_axis_value(xinput_gamepad->sThumbLX, normalize_axis_value(xinput_gamepad->sThumbLX), XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE));
@@ -205,19 +205,30 @@ void xinput_process()
 		onevent_gpad_axis(useridx, controllerkeymap[egk_L2], get_controller_axis_value(xinput_gamepad->bLeftTrigger, normalize_axis_value(xinput_gamepad->bLeftTrigger / 255.f), XINPUT_GAMEPAD_TRIGGER_THRESHOLD));
 		onevent_gpad_axis(useridx, controllerkeymap[egk_R2], get_controller_axis_value(xinput_gamepad->bRightTrigger, normalize_axis_value(xinput_gamepad->bRightTrigger / 255.f), XINPUT_GAMEPAD_TRIGGER_THRESHOLD));
 
+		double time_since_start = time_get_seconds();
+		
 		for (int8_t buttonidx = 0; buttonidx < egk_count; ++buttonidx)
 		{
 			if (!controller->state.buttons[buttonidx] && xinput_buttons[buttonidx])
 			{
-				onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_pressed, 0.0f);
+				onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_pressed);
+				
+				controller->state.buttons_repeat_counter[buttonidx] = time_since_start + button_repeat_init_value;
 			}
+
 			else if (controller->state.buttons[buttonidx] && !xinput_buttons[buttonidx])
 			{
-				onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_released, 0.0f);
+				onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_released);
 			}
+
 			else if (controller->state.buttons[buttonidx] && xinput_buttons[buttonidx])
 			{
-				//onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_repeated, 0.0f);
+				if (controller->state.buttons_repeat_counter[buttonidx] <= time_since_start)
+				{
+					onevent_gpad_button(useridx, controllerkeymap[buttonidx], keystate_repeated);
+
+					controller->state.buttons_repeat_counter[buttonidx] = time_since_start + button_repeat_delay_value;
+				}
 			}
 		}
 

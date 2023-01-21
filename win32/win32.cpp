@@ -167,53 +167,77 @@ int8_t modifiers_get()
 ****************************************/
 struct timedef
 {
-	int64_t frequency = 0;
-	int64_t begin = 0;
-	int64_t end = 0;
-	double  elapsedtime = 0;
+	double frequency   = 0;
+	double begin       = 0;
+	double end         = 0;
+	double elapsedtime = 0;
 };
 timedef win32_time;
 
 LARGE_INTEGER large_integer;
 
-bool win32_time_init()
-{
-	if (!QueryPerformanceFrequency(&large_integer))
-		return false;
-
-	win32_time.frequency = large_integer.QuadPart;
-
-	return true;
-}
-
 void time_begin()
 {
 	QueryPerformanceCounter(&large_integer);
-	win32_time.begin = large_integer.QuadPart;
+	win32_time.begin = double(large_integer.QuadPart);
 }
 
 void time_end()
 {
 	QueryPerformanceCounter(&large_integer);
-	win32_time.end = large_integer.QuadPart;
-
-	win32_time.elapsedtime = win32_time.end - win32_time.begin;
-	win32_time.elapsedtime /= win32_time.frequency;
+	
+	win32_time.end         = (double)large_integer.QuadPart;
+	win32_time.elapsedtime = (win32_time.end - win32_time.begin) * win32_time.frequency;
 }
 
-double time_get_lastframe_dt()
+
+double time_get_dt_as_seconds()
 {
-	return double(win32_time.elapsedtime);
+	return win32_time.elapsedtime;
+}
+
+double time_get_dt_as_milliseconds()
+{
+	return (win32_time.elapsedtime * 1000.f);
+}
+
+double time_get_dt_as_microseconds()
+{
+	return (win32_time.elapsedtime * 1000000.f);
 }
 
 double time_get_seconds()
 {
 	QueryPerformanceCounter(&large_integer);
 
-	double time = large_integer.QuadPart - win32_time.begin;
-	time /= win32_time.frequency;
+	double time = (double)large_integer.QuadPart * win32_time.frequency;
+	return time;
+}
 
-	return double(time);
+double time_get_milliseconds()
+{
+	QueryPerformanceCounter(&large_integer);
+
+	double time = (double)large_integer.QuadPart * win32_time.frequency * 1000.f;
+	return time;
+}
+
+double time_get_microseconds()
+{
+	QueryPerformanceCounter(&large_integer);
+
+	double time = (double)large_integer.QuadPart * win32_time.frequency * 1000000.f;
+	return time;
+}
+
+bool win32_time_init()
+{
+	if (!QueryPerformanceFrequency(&large_integer))
+		return false;
+
+	win32_time.frequency = 1.0f / (double)large_integer.QuadPart;
+
+	return true;
 }
 /***************************************
 *         END: TIME.H IMPL             *
@@ -250,47 +274,47 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 				keystate = keystate_pressed;
 		}
 		
-		onevent_kboard(0, keymap_get(InWParam), keystate, modifiers_get(), time_get_seconds());
+		onevent_kboard(0, keymap_get((uint16_t)InWParam), keystate, modifiers_get());
 	}
 	break;
 
 	case WM_LBUTTONDOWN:
-		onevent_mouse_button(0, ek_lmouse, keystate_pressed, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_lmouse, keystate_pressed, modifiers_get());
 		break;
 	case WM_LBUTTONUP:
-		onevent_mouse_button(0, ek_lmouse, keystate_released, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_lmouse, keystate_released, modifiers_get());
 		break;
 	case WM_LBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_lmouse, keystate_doubleclick, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_lmouse, keystate_doubleclick, modifiers_get());
 		break;
 
 	case WM_RBUTTONDOWN:
-		onevent_mouse_button(0, ek_rmouse, keystate_pressed, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_rmouse, keystate_pressed, modifiers_get());
 		break;
 	case WM_RBUTTONUP:
-		onevent_mouse_button(0, ek_rmouse, keystate_released, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_rmouse, keystate_released, modifiers_get());
 		break;
 	case WM_RBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_rmouse, keystate_doubleclick, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_rmouse, keystate_doubleclick, modifiers_get());
 		break;
 
 	case WM_MBUTTONDOWN:
-		onevent_mouse_button(0, ek_mmouse, keystate_pressed, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_mmouse, keystate_pressed, modifiers_get());
 		break;
 	case WM_MBUTTONUP:
-		onevent_mouse_button(0, ek_mmouse, keystate_released, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_mmouse, keystate_released, modifiers_get());
 		break;
 	case WM_MBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_mmouse, keystate_doubleclick, modifiers_get(), time_get_seconds());
+		onevent_mouse_button(0, ek_mmouse, keystate_doubleclick, modifiers_get());
 		break;
 
 	case WM_MOUSEWHEEL:
 	{
 		SHORT delta = GET_WHEEL_DELTA_WPARAM(InWParam);
 		if (delta < 0)
-			onevent_mouse_button(0, ek_mouse_scrolldown, keystate_pressed, modifiers_get(), time_get_seconds());
+			onevent_mouse_button(0, ek_mouse_scrolldown, keystate_pressed, modifiers_get());
 		else
-			onevent_mouse_button(0, ek_mouse_scrollup,   keystate_pressed, modifiers_get(), time_get_seconds());
+			onevent_mouse_button(0, ek_mouse_scrollup,   keystate_pressed, modifiers_get());
 	}
 		break;
 
@@ -328,16 +352,16 @@ static win32data_s win32data;
 
 bool win32_init()
 {
+	if (!win32_time_init())
+	{
+		printf("win32 time initialization failed.\n");
+		return false;
+	}
+
 	// should memory initialization be in platform.cpp - platform_init()
 	if (!mem_init(MEM_SIZE_MB(2)))
 	{
 		printf("memory initialization failed.\n");
-		return false;
-	}
-
-	if (!win32_time_init())
-	{
-		printf("win32 time initialization failed.\n");
 		return false;
 	}
 

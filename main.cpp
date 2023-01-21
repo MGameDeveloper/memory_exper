@@ -70,7 +70,7 @@ int main()
 	bind_action_msg(einputuser_0, ek_e, keystate_pressed, actionid_dodge);
 	bind_action_msg(einputuser_0, ek_r, keystate_pressed, actionid_useitem);
 	bind_action_msg(einputuser_0, ek_cross, keystate_pressed, actionid_dodge);
-	bind_action_msg(einputuser_0, ek_square, keystate_pressed, actionid_useitem);
+	bind_action_msg(einputuser_0, ek_square, keystate_repeated, actionid_useitem);
 	bind_action_msg(einputuser_0, ek_f, keystate_pressed, actionid_attack);
 	bind_action_msg(einputuser_0, ek_x, keystate_pressed, actionid_shield);
 

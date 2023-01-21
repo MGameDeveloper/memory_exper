@@ -400,26 +400,26 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 
 	printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
 
-	//Array         *user_actions  = user_actionlayout[useridx];
-	//Array         *user_handlers = user_inputhandlers[useridx];
-	//actionmsgdef  *actionmsg     = nullptr;
-	//msghandlerdef *msghandler    = nullptr;
-	//uint16_t       msg           = 0;
-	//
-	//if (user_actions && user_handlers)
-	//{
-	//	actionmsg = (actionmsgdef*)array_get(user_actions, ev->key);
-	//	if (actionmsg)
-	//	{
-	//		msg = actionmsg->msg[ev->state][ev->mods];
-	//
-	//		msghandler = (msghandlerdef*)array_get(user_handlers, msg);
-	//		if (msghandler && msghandler->handler.action_handler)
-	//		{
-	//			msghandler->handler.action_handler();
-	//		}
-	//	}
-	//}
+	Array         *user_actions  = user_actionlayout[useridx];
+	Array         *user_handlers = user_inputhandlers[useridx];
+	actionmsgdef  *actionmsg     = nullptr;
+	msghandlerdef *msghandler    = nullptr;
+	uint16_t       msg           = 0;
+	
+	if (user_actions && user_handlers)
+	{
+		actionmsg = (actionmsgdef*)array_get(user_actions, ev->key);
+		if (actionmsg)
+		{
+			msg = actionmsg->msg[ev->state][ev->mods];
+	
+			msghandler = (msghandlerdef*)array_get(user_handlers, msg);
+			if (msghandler && msghandler->handler.action_handler)
+			{
+				msghandler->handler.action_handler();
+			}
+		}
+	}
 }
 
 void mouse_event_handler(uint8_t useridx, eventdef* inev)
@@ -445,28 +445,28 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 
 	event_gpad* ev = &inev->gpad;
 
-	//printf("Controller[ %d ]: %s | %s | %.2f\n", useridx, keyname(ev->button), keystatename(ev->state), ev->value);
+	printf("Controller[ %d ]: %s | %s | %.2f\n", useridx, keyname(ev->button), keystatename(ev->state), ev->value);
 
-	Array* user_actions = user_actionlayout[useridx];
-	Array* user_handlers = user_inputhandlers[useridx];
-	actionmsgdef* actionmsg = nullptr;
-	msghandlerdef* msghandler = nullptr;
-	uint16_t       msg = 0;
-	
-	if (user_actions && user_handlers)
-	{
-		actionmsg = (actionmsgdef*)array_get(user_actions, ev->button);
-		if (actionmsg)
-		{
-			msg = actionmsg->msg[ev->state][emodkey_unknown];
-	
-			msghandler = (msghandlerdef*)array_get(user_handlers, msg);
-			if (msghandler && msghandler->handler.action_handler)
-			{
-				msghandler->handler.action_handler();
-			}
-		}
-	}
+	//Array* user_actions = user_actionlayout[useridx];
+	//Array* user_handlers = user_inputhandlers[useridx];
+	//actionmsgdef* actionmsg = nullptr;
+	//msghandlerdef* msghandler = nullptr;
+	//uint16_t       msg = 0;
+	//
+	//if (user_actions && user_handlers)
+	//{
+	//	actionmsg = (actionmsgdef*)array_get(user_actions, ev->button);
+	//	if (actionmsg)
+	//	{
+	//		msg = actionmsg->msg[ev->state][emodkey_unknown];
+	//
+	//		msghandler = (msghandlerdef*)array_get(user_handlers, msg);
+	//		if (msghandler && msghandler->handler.action_handler)
+	//		{
+	//			msghandler->handler.action_handler();
+	//		}
+	//	}
+	//}
 }
 /**************************************
 *    END: EVENT HANDLERS              *
@@ -507,7 +507,7 @@ bool event_init()
 	return true;
 }
 
-void onevent_kboard(int8_t inuserid, int16_t inkey, int8_t instate, int8_t inmods, float intimestamp)
+void onevent_kboard(int8_t inuserid, int16_t inkey, int8_t instate, int8_t inmods)
 {
 	if (inuserid < 0 || inuserid > 3)
 		return;
@@ -520,14 +520,14 @@ void onevent_kboard(int8_t inuserid, int16_t inkey, int8_t instate, int8_t inmod
 
 	kd->state     = instate;
 	kd->mods      = inmods;
-	kd->timestamp = intimestamp;
+	kd->timestamp = 0.0;
 
 	if (!ev_queue)
 		return;
 
 	eventdef ev;
 	ev.type         = eventtype_kboard;
-	ev.timestamp    = intimestamp;
+	ev.timestamp    = 0.0;
 	ev.kboard.key   = inkey;
 	ev.kboard.state = instate;
 	ev.kboard.mods  = inmods;
@@ -535,7 +535,7 @@ void onevent_kboard(int8_t inuserid, int16_t inkey, int8_t instate, int8_t inmod
 	queue_add(ev_queue, &ev);
 }
 
-void onevent_mouse_button(int8_t inuserid, int16_t inbutton, int8_t instate, int8_t inmods, float intimestamp)
+void onevent_mouse_button(int8_t inuserid, int16_t inbutton, int8_t instate, int8_t inmods)
 {
 	if (inuserid < 0 || inuserid > 3)
 		return;
@@ -548,14 +548,14 @@ void onevent_mouse_button(int8_t inuserid, int16_t inbutton, int8_t instate, int
 
 	kd->state     = instate;
 	kd->mods      = inmods;
-	kd->timestamp = intimestamp;
+	kd->timestamp = 0.0;
 
 	if (!ev_queue)
 		return;
 
 	eventdef ev;
 	ev.type         = eventtype_mouse;
-	ev.timestamp    = intimestamp;
+	ev.timestamp    = 0.0;
 	ev.mouse.button = inbutton;
 	ev.mouse.state  = instate;
 	ev.mouse.mods   = inmods;
@@ -563,7 +563,7 @@ void onevent_mouse_button(int8_t inuserid, int16_t inbutton, int8_t instate, int
 	queue_add(ev_queue, &ev);
 }
 
-void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate, float intimestamp)
+void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate)
 {
 	if (inuserid < 0 || inuserid > 3)
 		return;
@@ -575,7 +575,7 @@ void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate, floa
 		return;
 
 	kd->state = instate;
-	kd->timestamp = intimestamp;
+	kd->timestamp = 0.0;
 
 	if (!ev_queue)
 		return;
@@ -585,7 +585,7 @@ void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate, floa
 	ev.gpad.button = inbutton;
 	ev.gpad.state  = instate;
 	ev.gpad.userid = inuserid;
-	ev.timestamp   = intimestamp;
+	ev.timestamp   = 0.0;
 
 	queue_add(ev_queue, &ev);
 }
