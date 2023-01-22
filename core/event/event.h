@@ -32,7 +32,7 @@ struct event_gpad
 	int16_t button = -1;
 	int8_t  state  = -1;
 	int8_t  userid = 0;
-	float   value  = 0.0f;
+	//float   value  = 0.0f;
 };
 
 struct eventdef
@@ -53,8 +53,8 @@ struct eventdef
 extern bool event_init();
 extern void event_process();
 
-extern void onevent_kboard(int8_t inuserid, int16_t inkey, int8_t instate, int8_t inmods);
-extern void onevent_mouse_button(int8_t inuserid, int16_t inbutton, int8_t instate, int8_t inmods);
+extern void onevent_kboard(int16_t inkey, int8_t instate, int8_t inmods);
+extern void onevent_mouse_button(int16_t inbutton, int8_t instate, int8_t inmods);
 extern void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t state);
 extern void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue);
 extern void onevent_mouse_move(float inx, float iny);

@@ -151,6 +151,7 @@
     <ClCompile Include="core\utils\Memory.cpp" />
     <ClCompile Include="core\platform\win32\win32.cpp" />
     <ClCompile Include="core\platform\win32\xinput_interface.cpp" />
+    <ClCompile Include="tests\input\input_binding_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
