@@ -274,47 +274,47 @@ LRESULT WndProc(HWND InHwnd, UINT InMsg, WPARAM InWParam, LPARAM InLParam)
 				keystate = keystate_pressed;
 		}
 		
-		onevent_kboard(0, keymap_get((uint16_t)InWParam), keystate, modifiers_get());
+		onevent_kboard(keymap_get((uint16_t)InWParam), keystate, modifiers_get());
 	}
 	break;
 
 	case WM_LBUTTONDOWN:
-		onevent_mouse_button(0, ek_lmouse, keystate_pressed, modifiers_get());
+		onevent_mouse_button(ek_lmouse, keystate_pressed, modifiers_get());
 		break;
 	case WM_LBUTTONUP:
-		onevent_mouse_button(0, ek_lmouse, keystate_released, modifiers_get());
+		onevent_mouse_button(ek_lmouse, keystate_released, modifiers_get());
 		break;
 	case WM_LBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_lmouse, keystate_doubleclick, modifiers_get());
+		onevent_mouse_button(ek_lmouse, keystate_doubleclick, modifiers_get());
 		break;
 
 	case WM_RBUTTONDOWN:
-		onevent_mouse_button(0, ek_rmouse, keystate_pressed, modifiers_get());
+		onevent_mouse_button(ek_rmouse, keystate_pressed, modifiers_get());
 		break;
 	case WM_RBUTTONUP:
-		onevent_mouse_button(0, ek_rmouse, keystate_released, modifiers_get());
+		onevent_mouse_button(ek_rmouse, keystate_released, modifiers_get());
 		break;
 	case WM_RBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_rmouse, keystate_doubleclick, modifiers_get());
+		onevent_mouse_button(ek_rmouse, keystate_doubleclick, modifiers_get());
 		break;
 
 	case WM_MBUTTONDOWN:
-		onevent_mouse_button(0, ek_mmouse, keystate_pressed, modifiers_get());
+		onevent_mouse_button(ek_mmouse, keystate_pressed, modifiers_get());
 		break;
 	case WM_MBUTTONUP:
-		onevent_mouse_button(0, ek_mmouse, keystate_released, modifiers_get());
+		onevent_mouse_button(ek_mmouse, keystate_released, modifiers_get());
 		break;
 	case WM_MBUTTONDBLCLK:
-		onevent_mouse_button(0, ek_mmouse, keystate_doubleclick, modifiers_get());
+		onevent_mouse_button(ek_mmouse, keystate_doubleclick, modifiers_get());
 		break;
 
 	case WM_MOUSEWHEEL:
 	{
 		SHORT delta = GET_WHEEL_DELTA_WPARAM(InWParam);
 		if (delta < 0)
-			onevent_mouse_button(0, ek_mouse_scrolldown, keystate_pressed, modifiers_get());
+			onevent_mouse_button(ek_mouse_scrolldown, keystate_pressed, modifiers_get());
 		else
-			onevent_mouse_button(0, ek_mouse_scrollup,   keystate_pressed, modifiers_get());
+			onevent_mouse_button(ek_mouse_scrollup,   keystate_pressed, modifiers_get());
 	}
 		break;
 

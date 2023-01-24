@@ -64,38 +64,44 @@ int main()
 	}
 
 	// engine initialization here
-	inputlayout_init(0, actionid_count);
+	//inputlayout_init(0, actionid_count);
+	 
+	user_input_map* game = create_user_input_map();
+	if (!game)
+		return -1;
 
 	// actions bindings
-	bind_action_msg(einputuser_0, ek_e, keystate_repeated, actionid_dodge);
-	bind_action_msg(einputuser_0, ek_r, keystate_repeated, actionid_useitem);
-	bind_action_msg(einputuser_0, ek_cross, keystate_pressed, actionid_dodge);
-	bind_action_msg(einputuser_0, ek_square, keystate_repeated, actionid_useitem);
-	bind_action_msg(einputuser_0, ek_f, keystate_pressed, actionid_attack);
-	bind_action_msg(einputuser_0, ek_x, keystate_pressed, actionid_shield);
+	bind_action_msg(game, ek_e, keystate_repeated, actionid_dodge);
+	bind_action_msg(game, ek_r, keystate_repeated, actionid_useitem);
+	bind_action_msg(game, ek_triangle, keystate_pressed, actionid_dodge);
+	bind_action_msg(game, ek_cross, keystate_repeated, actionid_useitem);
+	bind_action_msg(game, ek_f, keystate_pressed, actionid_attack);
+	bind_action_msg(game, ek_x, keystate_pressed, actionid_shield);
 
 	// axes bindings
-	bind_axis_msg(einputuser_0, ek_up,    axisid_forward,  -1.f);
-	bind_axis_msg(einputuser_0, ek_down,  axisid_forward,   1.f);
-	bind_axis_msg(einputuser_0, ek_w,     axisid_forward,  -1.f);
-	bind_axis_msg(einputuser_0, ek_s,     axisid_forward,   1.f);
-	bind_axis_msg(einputuser_0, ek_left,  axisid_sideward, -1.f);
-	bind_axis_msg(einputuser_0, ek_right, axisid_sideward,  1.f);
-	bind_axis_msg(einputuser_0, ek_a,     axisid_sideward, -1.f);
-	bind_axis_msg(einputuser_0, ek_d,     axisid_sideward,  1.f);
-	bind_axis_msg(einputuser_0, ek_lanalogup,    axisid_forward,  -1.f);
-	bind_axis_msg(einputuser_0, ek_lanalogdown,  axisid_forward,   1.f);
-	bind_axis_msg(einputuser_0, ek_lanalogleft,  axisid_sideward, -1.f);
-	bind_axis_msg(einputuser_0, ek_lanalogright, axisid_sideward,  1.f);
+	bind_axis_msg(game, ek_up,    axisid_forward,  -1.f);
+	bind_axis_msg(game, ek_down,  axisid_forward,   1.f);
+	bind_axis_msg(game, ek_w,     axisid_forward,  -1.f);
+	bind_axis_msg(game, ek_s,     axisid_forward,   1.f);
+	bind_axis_msg(game, ek_left,  axisid_sideward, -1.f);
+	bind_axis_msg(game, ek_right, axisid_sideward,  1.f);
+	bind_axis_msg(game, ek_a,     axisid_sideward, -1.f);
+	bind_axis_msg(game, ek_d,     axisid_sideward,  1.f);
+	bind_axis_msg(game, ek_lanalogup,    axisid_forward,  -1.f);
+	bind_axis_msg(game, ek_lanalogdown,  axisid_forward,   1.f);
+	bind_axis_msg(game, ek_lanalogleft,  axisid_sideward, -1.f);
+	bind_axis_msg(game, ek_lanalogright, axisid_sideward,  1.f);
 
 	// msg handlers
-	bind_action_handler(einputuser_0, actionid_dodge,   dodge);
-	bind_action_handler(einputuser_0, actionid_useitem, useitem);
-	bind_action_handler(einputuser_0, actionid_attack,  attack);
-	bind_action_handler(einputuser_0, actionid_shield,  shield);
+	bind_action_handler(game, actionid_dodge,   dodge);
+	bind_action_handler(game, actionid_useitem, useitem);
+	bind_action_handler(game, actionid_attack,  attack);
+	bind_action_handler(game, actionid_shield,  shield);
 	
-	bind_axis_handler(einputuser_0, axisid_forward,  move_forward);
-	bind_axis_handler(einputuser_0, axisid_sideward, move_sideward);
+	bind_axis_handler(game, axisid_forward,  move_forward);
+	bind_axis_handler(game, axisid_sideward, move_sideward);
+
+	push_input_map(einputuser_0, game);
 
 	mem_display_info();
 
@@ -113,3 +119,4 @@ int main()
 
 	return 0;
 }
+

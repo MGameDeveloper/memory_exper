@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include "keys.h"
 
-// defined int event.cpp
-extern void mouse_get_pos(float* outx, float* outy);
 
 enum einputuser
 {
@@ -16,11 +14,19 @@ enum einputuser
 	einputuser_count,
 };
 
-extern void inputlayout_init(uint8_t ininputuser, uint16_t inmsgcount);
-extern void bind_action_msg(uint8_t ininputuser, int16_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmodes = emodkey_unknown);
-extern void bind_axis_msg(uint8_t ininputuser, int16_t inkey, uint16_t inmsgid, float inaxisvalue, uint8_t inmods = emodkey_unknown);
-extern void bind_action_handler(uint8_t ininputuser, uint16_t inmsgid, void(*action_handler)());
-extern void bind_axis_handler(uint8_t ininputuser, uint16_t inmsgid,   void(*axis_handler)(float));
+// defined in event.cpp
+struct user_input_map;
+extern user_input_map* create_user_input_map();
+extern void push_input_map(uint8_t ininputuser, user_input_map* input_map);
+extern void pop_input_map(uint8_t ininputuser);
+
+extern void bind_action_msg(user_input_map* input_map, int16_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmods = emodkey_unknown);
+extern void bind_axis_msg(user_input_map* input_map, int16_t inkey, uint16_t inmsgid, float inaxisvalue = 0.f, uint8_t inmods = emodkey_unknown);
+extern void bind_action_handler(user_input_map* input_map, uint16_t inmsgid, void(*action_handler)());
+extern void bind_axis_handler(user_input_map* input_map, uint16_t inmsgid, void(*axis_handler)(float));
+
+extern void mouse_get_pos(float* outx, float* outy);
+
 
 // define in xinput_interface.h
 extern void controller_vibrate_start(uint8_t ininputuser, uint16_t inleftmotorspeed, uint16_t inrightmotorspeed);

@@ -5,8 +5,8 @@
 
 struct eventdef_queue
 {
-	uint32_t get_idx = 0;
-	uint32_t add_idx = 0;
+	uint16_t get_idx = 0;
+	uint16_t add_idx = 0;
 	eventdef events[EVENT_COUNT];
 };
 bool      is_event_queue_empty(eventdef_queue* queue)
@@ -33,9 +33,9 @@ eventdef* get_event_from_queue(eventdef_queue* queue)
 		return nullptr;
 
 	if (is_event_queue_empty(queue))
-		return;
+		return nullptr;
 
-	uint32_t idx = queue->get_idx++;
+	uint16_t idx = queue->get_idx++;
 
 	return &queue->events[idx];
 }
@@ -282,7 +282,12 @@ void input_debugging_stuff_init()
 #define USER_COUNT 4
 #define KEY_COUNT 256
 #define CMD_COUNT 256
+#define INPUT_MAP_COUNT 10
 
+
+/***************************************
+*   BEGIN: USER INPUT MAP STACK IMPL   *
+****************************************/
 union key_handler_def
 {
 	void (*axis)(float) = nullptr;
@@ -291,37 +296,103 @@ union key_handler_def
 
 struct key_action_def
 {
-	uint32_t cmd[keystate_count][emodkey_count];
+	uint16_t cmd[keystate_count][emodkey_count];
 };
 
 struct key_axis_def
 {
-	uint32_t cmd[emodkey_count];
+	uint16_t cmd[emodkey_count];
+	float    value[emodkey_count];
 };
+
+struct user_input_map
+{
+	key_action_def  actions[KEY_COUNT];
+	key_axis_def    axes[KEY_COUNT];
+	key_handler_def handlers[CMD_COUNT];
+};
+
+struct user_input_map_stack
+{
+	user_input_map input_maps[INPUT_MAP_COUNT];
+	int8_t idx = 0;
+};
+
+void add_input_map_to_stack(user_input_map_stack* stack, user_input_map* input_map)
+{
+	if (!stack || !input_map)
+		return;
+
+	if (stack->idx >= INPUT_MAP_COUNT)
+		return; // mean it's full
+
+	if (stack->idx == -1)
+		stack->idx = 0;
+
+	int32_t idx = stack->idx++;
+	memcpy(&stack->input_maps[idx], input_map, sizeof(user_input_map));
+}
+void remove_top_input_map_from_stack(user_input_map_stack* stack)
+{
+	if (!stack)
+		return;
+
+	if (stack->idx - 1 < -1)
+		return;
+
+	stack->idx--;
+}
+user_input_map* top_input_map_in_stack(user_input_map_stack* stack)
+{
+	if (!stack)
+		return nullptr;
+
+	int8_t idx = stack->idx - 1;
+	if (idx < 0)
+		return nullptr;
+
+	return &stack->input_maps[idx];
+}
+bool is_input_map_stack_empty(user_input_map_stack* stack)
+{
+	return (stack->idx == -1);
+}
+void clear_input_map_stack(user_input_map_stack* stack)
+{
+	if (!stack)
+		return;
+
+	memset(stack, 0, sizeof(user_input_map) * INPUT_MAP_COUNT);
+}
+/***************************************
+*   END: USER INPUT MAP STACK IMPL     *
+****************************************/
 
 struct users_input_def
 {
-	float           user_key_timestamp[USER_COUNT][KEY_COUNT];
-	float           user_key_value[USER_COUNT][KEY_COUNT];
-	key_handler_def user_handlers[USER_COUNT][CMD_COUNT];
-	key_action_def  user_actions[USER_COUNT][KEY_COUNT];
-	key_axis_def    user_axes[USER_COUNT][KEY_COUNT];
-	eventdef_queue  user_event_queue[USER_COUNT];
-	uint8_t         user_keys_state[USER_COUNT][KEY_COUNT];
-	uint8_t         user_keys_mods[USER_COUNT][KEY_COUNT];
+	float                user_key_timestamp[USER_COUNT][KEY_COUNT];
+	float                user_key_value[USER_COUNT][KEY_COUNT];
+	user_input_map_stack user_input_map_stack[USER_COUNT];
+	eventdef_queue       user_event_queue[USER_COUNT];
+	uint8_t              user_keys_state[USER_COUNT][KEY_COUNT];
+	uint8_t              user_keys_mods[USER_COUNT][KEY_COUNT];
+	//key_handler_def      user_handlers[USER_COUNT][CMD_COUNT];
+	//key_action_def  user_actions[USER_COUNT][KEY_COUNT];
+	//key_axis_def    user_axes[USER_COUNT][KEY_COUNT];
 };
 users_input_def* users = nullptr;
 
 struct user_input_def_return
 {
-	float           *keys_timestamp = nullptr;
-	float           *keys_value     = nullptr;
-	uint8_t         *keys_state     = nullptr;
-	uint8_t         *keys_mods      = nullptr;	
-	key_action_def  *keys_actions   = nullptr;
-	key_axis_def    *keys_axes      = nullptr;
-	key_handler_def *cmds_handlers  = nullptr;
-	eventdef_queue  *event_queue    = nullptr;
+	float                *keys_timestamp       = nullptr;
+	float                *keys_value           = nullptr;
+	uint8_t              *keys_state           = nullptr;
+	uint8_t              *keys_mods            = nullptr;	
+	user_input_map_stack *user_input_map_stack = nullptr;
+	eventdef_queue       *event_queue          = nullptr;
+	//key_handler_def      *cmds_handlers        = nullptr;
+	//key_action_def  *keys_actions   = nullptr;
+	//key_axis_def    *keys_axes      = nullptr;
 };
 
 user_input_def_return get_user_input_detail(uint8_t in_user_idx)
@@ -331,14 +402,15 @@ user_input_def_return get_user_input_detail(uint8_t in_user_idx)
 	if (!users || in_user_idx > 3)
 		return user_input;
 
-	user_input.keys_timestamp = users->user_key_timestamp[in_user_idx];
-	user_input.keys_value     = users->user_key_value[in_user_idx];
-	user_input.keys_state     = users->user_keys_state[in_user_idx];
-	user_input.keys_mods      = users->user_keys_mods[in_user_idx];
-	user_input.keys_actions   = users->user_actions[in_user_idx];
-	user_input.keys_axes      = users->user_axes[in_user_idx];
-	user_input.keys_handlers  = users->user_handlers[in_user_idx];
-	user_input.event_queue    = &users->user_event_queue[in_user_idx];
+	user_input.keys_timestamp       = users->user_key_timestamp[in_user_idx];
+	user_input.keys_value           = users->user_key_value[in_user_idx];
+	user_input.keys_state           = users->user_keys_state[in_user_idx];
+	user_input.keys_mods            = users->user_keys_mods[in_user_idx];
+	user_input.user_input_map_stack = &users->user_input_map_stack[in_user_idx];
+	user_input.event_queue          = &users->user_event_queue[in_user_idx];
+	//user_input.cmds_handlers        = users->user_handlers[in_user_idx];
+	//user_input.keys_actions   = users->user_actions[in_user_idx];
+	//user_input.keys_axes      = users->user_axes[in_user_idx];
 
 	return user_input;
 }
@@ -360,142 +432,221 @@ void mouse_get_pos(float* outx, float* outy)
 		*outy = mouse_y;
 }
 
-void inputlayout_init(uint8_t ininputuser, uint16_t inmsgcount)
+user_input_map* create_user_input_map()
+{
+	return (user_input_map*)mem_alloc("struct: user_input_map", sizeof(user_input_map));
+}
+
+void push_input_map(uint8_t ininputuser, user_input_map* input_map)
 {
 	if (ininputuser > 3 || ininputuser < 0)
 		return;
 
-	Array *imd_actionlayout = user_actionlayout[ininputuser];
-	Array *img_axislayout   = user_axislayout[ininputuser];
-	Array *mhd              = user_inputhandlers[ininputuser];
-
-	if (img_axislayout || imd_actionlayout || mhd)
+	if (!users || !input_map)
 		return;
 
-	const char* array_name = nullptr;
+	add_input_map_to_stack(users->user_input_map_stack, input_map);
 
-	switch (ininputuser)
-	{
-	case 0: array_name = "array_actionmap_user_0"; break;
-	case 1: array_name = "array_actionmap_user_1"; break;
-	case 2: array_name = "array_actionmap_user_2"; break;
-	case 3: array_name = "array_actionmap_user_3"; break;
-	}
-	user_actionlayout[ininputuser]  = array_create(array_name, ek_count, sizeof(actionmsgdef));
-
-	switch (ininputuser)
-	{
-	case 0: array_name = "array_axismap_user_0"; break;
-	case 1: array_name = "array_axismap_user_1"; break;
-	case 2: array_name = "array_axismap_user_2"; break;
-	case 3: array_name = "array_axismap_user_3"; break;
-	}
-	user_axislayout[ininputuser]    = array_create(array_name, ek_count, sizeof(axismsgdef));
-
-	switch (ininputuser)
-	{
-	case 0: array_name = "array_msghandler_user_0"; break;
-	case 1: array_name = "array_msghandler_user_1"; break;
-	case 2: array_name = "array_msghandler_user_2"; break;
-	case 3: array_name = "array_msghandler_user_3"; break;
-	}
-	user_inputhandlers[ininputuser] = array_create(array_name, inmsgcount, sizeof(msghandlerdef));
+	//Array *imd_actionlayout = user_actionlayout[ininputuser];
+	//Array *img_axislayout   = user_axislayout[ininputuser];
+	//Array *mhd              = user_inputhandlers[ininputuser];
+	//
+	//if (img_axislayout || imd_actionlayout || mhd)
+	//	return;
+	//
+	//const char* array_name = nullptr;
+	//
+	//switch (ininputuser)
+	//{
+	//case 0: array_name = "array_actionmap_user_0"; break;
+	//case 1: array_name = "array_actionmap_user_1"; break;
+	//case 2: array_name = "array_actionmap_user_2"; break;
+	//case 3: array_name = "array_actionmap_user_3"; break;
+	//}
+	//user_actionlayout[ininputuser]  = array_create(array_name, ek_count, sizeof(actionmsgdef));
+	//
+	//switch (ininputuser)
+	//{
+	//case 0: array_name = "array_axismap_user_0"; break;
+	//case 1: array_name = "array_axismap_user_1"; break;
+	//case 2: array_name = "array_axismap_user_2"; break;
+	//case 3: array_name = "array_axismap_user_3"; break;
+	//}
+	//user_axislayout[ininputuser]    = array_create(array_name, ek_count, sizeof(axismsgdef));
+	//
+	//switch (ininputuser)
+	//{
+	//case 0: array_name = "array_msghandler_user_0"; break;
+	//case 1: array_name = "array_msghandler_user_1"; break;
+	//case 2: array_name = "array_msghandler_user_2"; break;
+	//case 3: array_name = "array_msghandler_user_3"; break;
+	//}
+	//user_inputhandlers[ininputuser] = array_create(array_name, inmsgcount, sizeof(msghandlerdef));
 }
 
-void bind_action_msg(uint8_t ininputuser, int16_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmods)
+void pop_input_map(uint8_t ininputuser)
 {
-	Array* actions = user_actionlayout[ininputuser];
-	if (!actions)
+	if (ininputuser > 3 || ininputuser < 0)
 		return;
 
-	actionmsgdef* msgdef = (actionmsgdef*)array_get(actions, inkey);
-	if (!msgdef)
+	if (!users)
 		return;
 
-	msgdef->msg[inkeystate][inmods] = inmsgid;
+	remove_top_input_map_from_stack(&users->user_input_map_stack[ininputuser]);
 }
 
-void bind_axis_msg(uint8_t ininputuser, int16_t inkey, uint16_t inmsgid, float inaxisvalue, uint8_t inmods)
+void bind_action_msg(user_input_map* input_map, int16_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmods)
 {
-	Array* axes = user_axislayout[ininputuser];
-	if (!axes)
+	//Array* actions = user_actionlayout[ininputuser];
+	//if (!actions)
+	//	return;
+	//
+	//actionmsgdef* msgdef = (actionmsgdef*)array_get(actions, inkey);
+	//if (!msgdef)
+	//	return;
+	//
+	//msgdef->msg[inkeystate][inmods] = inmsgid;
+
+	if (!input_map)
 		return;
 
-	axismsgdef* msgdef = (axismsgdef*)array_get(axes, inkey);
-	if (!msgdef)
-		return;
-
-	msgdef->msg[inmods] = inmsgid;
-	key_setvalue(ininputuser, inkey, inaxisvalue);
+	input_map->actions[inkey].cmd[inkeystate][inmods] = inmsgid;
 }
 
-void bind_action_handler(uint8_t ininputuser, uint16_t inmsgid, void(*action_handler)())
+void bind_axis_msg(user_input_map* input_map, int16_t inkey, uint16_t inmsgid, float inaxisvalue, uint8_t inmods)
 {
-	Array* handlers = user_inputhandlers[ininputuser];
-	if (!handlers)
+	//Array* axes = user_axislayout[ininputuser];
+	//if (!axes)
+	//	return;
+	//
+	//axismsgdef* msgdef = (axismsgdef*)array_get(axes, inkey);
+	//if (!msgdef)
+	//	return;
+	//
+	//msgdef->msg[inmods] = inmsgid;
+	//key_setvalue(ininputuser, inkey, inaxisvalue);
+
+	if (!input_map)
 		return;
 
-	msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
-	if (!handlerdef)
-		return;
-
-	handlerdef->handler.action_handler = action_handler;
+	input_map->axes[inkey].cmd[inmods]   = inmsgid;
+	input_map->axes[inkey].value[inmods] = inaxisvalue;
 }
 
-void bind_axis_handler(uint8_t ininputuser, uint16_t inmsgid, void(*axis_handler)(float))
+void bind_action_handler(user_input_map* input_map, uint16_t inmsgid, void(*action_handler)())
 {
-	Array* handlers = user_inputhandlers[ininputuser];
-	if (!handlers)
+	//Array* handlers = user_inputhandlers[ininputuser];
+	//if (!handlers)
+	//	return;
+	//
+	//msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
+	//if (!handlerdef)
+	//	return;
+	//
+	//handlerdef->handler.action_handler = action_handler;
+
+	if (!input_map)
 		return;
 
-	msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
-	if (!handlerdef)
+	input_map->handlers[inmsgid].action = action_handler;
+}
+
+void bind_axis_handler(user_input_map* input_map, uint16_t inmsgid, void(*axis_handler)(float))
+{
+	//Array* handlers = user_inputhandlers[ininputuser];
+	//if (!handlers)
+	//	return;
+	//
+	//msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
+	//if (!handlerdef)
+	//	return;
+	//
+	//handlerdef->handler.axis_handler = axis_handler;
+
+	if (!input_map)
 		return;
 
-	handlerdef->handler.axis_handler = axis_handler;
+	input_map->handlers[inmsgid].axis = axis_handler;
 }
 
 void process_axes()
 {
-	int8_t         useridx = 0;
-	Array* user_axes = nullptr;
-	Array* user_keydetail = nullptr;
-	Array* user_handlers = nullptr;
-	axismsgdef* axismsg = nullptr;
-	key_detail* kd = nullptr;
-	msghandlerdef* msghandler = nullptr;
+	//Array* user_axes = nullptr;
+	//Array* user_keydetail = nullptr;
+	//Array* user_handlers = nullptr;
+	//axismsgdef* axismsg = nullptr;
+	//key_detail* kd = nullptr;
+	//msghandlerdef* msghandler = nullptr;
+
+	
+	int8_t                useridx = 0;
+	user_input_def_return user;
+	user_input_map*       input_map = nullptr;
+	uint32_t              input_map_idx = 0;
+	int8_t                key_mod = 0;
+	int8_t                key_state = 0;
+	key_handler_def       handler;
+	uint32_t              cmd = 0;
 
 	while (useridx < 4)
 	{
-		user_axes = user_axislayout[useridx];
-		user_keydetail = users_keydetail[useridx];
-		user_handlers = user_inputhandlers[useridx];
-		++useridx;
+		//user_axes = user_axislayout[useridx];
+		//user_keydetail = users_keydetail[useridx];
+		//user_handlers = user_inputhandlers[useridx];
 
-		if (!user_axes || !user_keydetail || !user_handlers)
+		//if (!user_axes || !user_keydetail || !user_handlers)
+			//continue;
+
+		user = get_user_input_detail(useridx);
+		if (!is_user_return_valid(&user))
+		{
+		    ++useridx;
 			continue;
+		}
+
+		input_map_idx = user.user_input_map_stack->idx - 1;
+		if (input_map_idx < 0)
+			continue;
+		input_map = &user.user_input_map_stack->input_maps[input_map_idx];
 
 		for (int32_t key = 0; key < ek_count; ++key)
 		{
-			axismsg = (axismsgdef*)array_get(user_axes, key);
 
-			if (!axismsg)
+			//axismsg = (axismsgdef*)array_get(user_axes, key);
+
+			//if (!axismsg)
+				//continue;
+
+			//kd = (key_detail*)array_get(user_keydetail, key);
+
+			//if (!kd)
+				//continue;
+
+			//if (kd->state <= keystate_released)
+				//continue;
+
+			key_state = user.keys_state[ek_count];
+			if (key_state <= keystate_released)
 				continue;
 
-			kd = (key_detail*)array_get(user_keydetail, key);
+			key_mod   = user.keys_mods[ek_count];
+			cmd = input_map->axes[key].cmd[key_mod];
+			float value = input_map->axes[key].value[key_mod];
 
-			if (!kd)
-				continue;
-
-			if (kd->state <= keystate_released)
-				continue;
-
-			msghandler = (msghandlerdef*)array_get(user_handlers, axismsg->msg[kd->mods]);
-			if (msghandler && msghandler->handler.axis_handler)
+			handler = input_map->handlers[cmd];
+			if (handler.axis)
 			{
-				msghandler->handler.axis_handler(kd->value);
+				handler.axis(value);
 			}
+
+			//msghandler = (msghandlerdef*)array_get(user_handlers, axismsg->msg[kd->mods]);
+			//if (msghandler && msghandler->handler.axis_handler)
+			//{
+			//	msghandler->handler.axis_handler(kd->value);
+			//}
 		}
+
+		++useridx;
 	}
 }
 
@@ -518,7 +669,6 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 
 	//event_kboard* ev = &inev->kboard;
 	//
-	//printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
 	//
 	//Array         *user_actions  = user_actionlayout[useridx];
 	//Array         *user_handlers = user_inputhandlers[useridx];
@@ -545,24 +695,34 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 	//}
 
 	event_kboard* ev = &inev->kboard;
+	
+	printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
 
 	user_input_def_return user = get_user_input_detail(useridx);
 	if (!is_user_return_valid(&user))
 		return;
 
+	user_input_map* input_map = top_input_map_in_stack(user.user_input_map_stack);
+	if (!input_map)
+		return;
+
+	key_action_def* user_actions = input_map->actions;
+
 	uint32_t cmd = 0;
-	if (user.keys_actions[ev->key].cmd[keystate_repeated][ev->mods] && ev->state == keystate_pressed)
+	if (user_actions[ev->key].cmd[keystate_repeated][ev->mods] && ev->state == keystate_pressed)
 	{
-		cmd = user.keys_actions[ev->key].cmd[keystate_repeated][ev->mods];
+		cmd = user_actions[ev->key].cmd[keystate_repeated][ev->mods];
 	}
 	else
 	{
-		cmd = user.keys_actions[ev->key].cmd[ev->state][ev->mods];
+		cmd = user_actions[ev->key].cmd[ev->state][ev->mods];
 	}
 
-	if (user.cmds_handlers[cmd].action)
+	key_handler_def handler = input_map->handlers[cmd];
+
+	if (handler.action)
 	{
-		user.cmds_handlers[cmd].action();
+		handler.action();
 	}
 }
 
@@ -617,23 +777,33 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 
 	event_gpad* ev = &inev->gpad;
 
+	printf("Controller[ %d ]: %s | %s \n", useridx, keyname(ev->button), keystatename(ev->state)/*, ev->value*/);
+
 	user_input_def_return user = get_user_input_detail(useridx);
 	if (!is_user_return_valid(&user))
 		return;
 
+	user_input_map* input_map = top_input_map_in_stack(user.user_input_map_stack);
+	if (!input_map)
+		return;
+
+	key_action_def* user_actions = input_map->actions;
+
 	uint32_t cmd = 0;
-	if (user.keys_actions[ev->button].cmd[keystate_repeated][emodkey_unknown] && ev->state == keystate_pressed)
+	if (user_actions[ev->button].cmd[keystate_repeated][emodkey_unknown] && ev->state == keystate_pressed)
 	{
-		cmd = user.keys_actions[ev->button].cmd[keystate_repeated][emodkey_unknown];
+		cmd = user_actions[ev->button].cmd[keystate_repeated][emodkey_unknown];
 	}
 	else
 	{
-		cmd = user.keys_actions[ev->button].cmd[ev->state][emodkey_unknown];
+		cmd = user_actions[ev->button].cmd[ev->state][emodkey_unknown];
 	}
 
-	if (user.cmds_handlers[cmd].action)
+	key_handler_def handler = input_map->handlers[cmd];
+
+	if (handler.action)
 	{
-		user.cmds_handlers[cmd].action();
+		handler.action();
 	}
 }
 /**************************************
@@ -869,7 +1039,7 @@ void event_process()
 	//	queue_clear(ev_queue);
 	//}
 
-	//process_axes();
+	process_axes();
 
 	user_input_def_return user;
 	eventdef* ev = nullptr;
