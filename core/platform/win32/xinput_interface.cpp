@@ -164,7 +164,7 @@ void xinput_process()
 		if (is_gamepad_connected != 0)
 			controller->should_be_updated = false;
 
-		if (controller->laststate == xinput_state.dwPacketNumber) // state has not changed since last time queried
+		if (controller->laststate == xinput_state.dwPacketNumber)
 			continue;
 
 		xinput_gamepad = &xinput_state.Gamepad;
