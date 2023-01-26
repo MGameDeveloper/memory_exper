@@ -20,34 +20,33 @@ enum egamecmd
 };
 
 
-void move_forward(float invalue)
+void player1_move_forward(float invalue)
 {
-	printf("forward: %.2f\n", invalue);
+	printf("Player_1: Forward: %.2f\n", invalue);
 }
-void move_sideward(float invalue)
+void player1_move_sideward(float invalue)
 {
-	printf("sideward: %.2f\n", invalue);
+	printf("Player_1: Sideward: %.2f\n", invalue);
 
 }
-void dodge()
+void player1_dodge()
 {
-	printf("Dodge\n");
+	printf("Player_1: Dodge\n");
 	controller_vibrate_start(einputuser_0, 32000, 16000);
 }
-void useitem()
+void player1_useitem()
 {
-	printf("Useitem\n");
+	printf("Player_1: Useitem\n");
 	controller_vibrate_end(einputuser_0);
 }
-void attack()
+void player1_attack()
 {
-	printf("Attack\n");
+	printf("Player_1: Attack\n");
 }
-void shield()
+void player1_shield()
 {
-	printf("Shield\n");
+	printf("Player_1: Shield\n");
 }
-
 
 bool player_one_init_input() 
 {
@@ -56,35 +55,25 @@ bool player_one_init_input()
 		return false;
 
 	// actions bindings
-	bind_action_msg(game, ek_e,        keystate_repeated, egc_dodge);
-	bind_action_msg(game, ek_r,        keystate_repeated, egc_useitem);
-	bind_action_msg(game, ek_triangle, keystate_pressed,  egc_dodge);
-	bind_action_msg(game, ek_cross,    keystate_repeated, egc_useitem);
-	bind_action_msg(game, ek_f,        keystate_pressed,  egc_attack);
-	bind_action_msg(game, ek_x,        keystate_pressed,  egc_shield);
+	bind_action_msg(game, ek_circle, keystate_pressed, egc_dodge);
+	bind_action_msg(game, ek_square, keystate_pressed, egc_useitem);
+	bind_action_msg(game, ek_R1,     keystate_pressed, egc_attack);
+	bind_action_msg(game, ek_L1,     keystate_pressed, egc_shield);
 
 	// axes bindings
-	bind_axis_msg(game, ek_up,           egc_forward,  -1.f);
-	bind_axis_msg(game, ek_down,         egc_forward,   1.f);
-	bind_axis_msg(game, ek_w,            egc_forward,  -1.f);
-	bind_axis_msg(game, ek_s,            egc_forward,   1.f);
-	bind_axis_msg(game, ek_left,         egc_sideward, -1.f);
-	bind_axis_msg(game, ek_right,        egc_sideward,  1.f);
-	bind_axis_msg(game, ek_a,            egc_sideward, -1.f);
-	bind_axis_msg(game, ek_d,            egc_sideward,  1.f);
 	bind_axis_msg(game, ek_lanalogup,    egc_forward,  -1.f);
 	bind_axis_msg(game, ek_lanalogdown,  egc_forward,   1.f);
 	bind_axis_msg(game, ek_lanalogleft,  egc_sideward, -1.f);
 	bind_axis_msg(game, ek_lanalogright, egc_sideward,  1.f);
 
 	// msg handlers
-	bind_action_handler(game, egc_dodge,   dodge);
-	bind_action_handler(game, egc_useitem, useitem);
-	bind_action_handler(game, egc_attack,  attack);
-	bind_action_handler(game, egc_shield,  shield);
+	bind_action_handler(game, egc_dodge,   player1_dodge);
+	bind_action_handler(game, egc_useitem, player1_useitem);
+	bind_action_handler(game, egc_attack,  player1_attack);
+	bind_action_handler(game, egc_shield,  player1_shield);
 
-	bind_axis_handler(game, egc_forward,  move_forward);
-	bind_axis_handler(game, egc_sideward, move_sideward);
+	bind_axis_handler(game, egc_forward,  player1_move_forward);
+	bind_axis_handler(game, egc_sideward, player1_move_sideward);
 
 	if (!push_input_map(einputuser_0, game))
 		return false;
@@ -93,3 +82,69 @@ bool player_one_init_input()
 }
 
 
+
+
+
+
+
+
+void player2_move_forward(float invalue)
+{
+	printf("Player_2: Forward %.2f\n", invalue);
+}
+void player2_move_sideward(float invalue)
+{
+	printf("Player_2: Sideward: %.2f\n", invalue);
+
+}
+void player2_dodge()
+{
+	printf("Player_2:Dodge\n");
+	controller_vibrate_start(einputuser_1, 32000, 16000);
+}
+void player2_useitem()
+{
+	printf("Player_2:Useitem\n");
+	controller_vibrate_end(einputuser_1);
+}
+void player2_attack()
+{
+	printf("Player_2: Attack\n");
+}
+void player2_shield()
+{
+	printf("Player_2:Shield\n");
+}
+
+bool player_two_init_input()
+{
+	user_input_map* game = create_user_input_map();
+	if (!game)
+		return false;
+
+	// actions bindings
+	bind_action_msg(game, ek_circle, keystate_pressed, egc_dodge);
+	bind_action_msg(game, ek_square, keystate_pressed, egc_useitem);
+	bind_action_msg(game, ek_R1, keystate_pressed, egc_attack);
+	bind_action_msg(game, ek_L1, keystate_pressed, egc_shield);
+
+	// axes bindings
+	bind_axis_msg(game, ek_lanalogup, egc_forward, -1.f);
+	bind_axis_msg(game, ek_lanalogdown, egc_forward, 1.f);
+	bind_axis_msg(game, ek_lanalogleft, egc_sideward, -1.f);
+	bind_axis_msg(game, ek_lanalogright, egc_sideward, 1.f);
+
+	// msg handlers
+	bind_action_handler(game, egc_dodge,   player2_dodge);
+	bind_action_handler(game, egc_useitem, player2_useitem);
+	bind_action_handler(game, egc_attack,  player2_attack);
+	bind_action_handler(game, egc_shield,  player2_shield);
+
+	bind_axis_handler(game, egc_forward,  player2_move_forward);
+	bind_axis_handler(game, egc_sideward, player2_move_sideward);
+
+	if (!push_input_map(einputuser_1, game))
+		return false;
+
+	return true;
+}

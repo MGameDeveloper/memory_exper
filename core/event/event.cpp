@@ -280,9 +280,9 @@ void input_debugging_stuff_init()
 
 
 #define USER_COUNT 4
-#define KEY_COUNT 256 // should we use our ek_count instead???
-#define CMD_COUNT 256
-#define INPUT_MAP_COUNT 10
+#define KEY_COUNT ek_count 
+#define CMD_COUNT ek_count
+#define INPUT_MAP_COUNT 3
 
 
 /***************************************
@@ -602,11 +602,11 @@ void process_axes()
 
 		for (int32_t key = 0; key < ek_count; ++key)
 		{
-			key_state = user.keys_state[ek_count];
+			key_state = user.keys_state[key];
 			if (key_state <= keystate_released)
 				continue;
 
-			key_mod = user.keys_mods[ek_count];
+			key_mod = user.keys_mods[key];
 			cmd     = input_map->axes[key].cmd;
 			value   = input_map->axes[key].value;
 
@@ -732,7 +732,7 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 
 	event_kboard* ev = &inev->kboard;
 	
-	printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
+	//printf("key: %s | %s | %s \n", keyname(ev->key), keystatename(ev->state), modkeyname(ev->mods));
 
 	user_input_def_return user = get_user_input_detail(useridx);
 	if (!is_user_return_valid(&user))
@@ -769,7 +769,7 @@ void mouse_event_handler(uint8_t useridx, eventdef* inev)
 
 	event_mouse* ev = &inev->mouse;
 
-	printf("button: %s | %s | %s \n", keyname(ev->button), keystatename(ev->state), modkeyname(ev->mods));
+	//printf("button: %s | %s | %s \n", keyname(ev->button), keystatename(ev->state), modkeyname(ev->mods));
 
 	// loop through user_0 action map and invoke if nay
 
@@ -813,7 +813,6 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 
 	event_gpad* ev = &inev->gpad;
 
-	printf("Controller[ %d ]: %s | %s \n", useridx, keyname(ev->button), keystatename(ev->state)/*, ev->value*/);
 
 	user_input_def_return user = get_user_input_detail(useridx);
 	if (!is_user_return_valid(&user))
@@ -825,6 +824,8 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 
 	key_action_def* user_actions = input_map->actions;
 
+	//printf("Controller[ %d ]: %s | %s  | %.2f\n", useridx, keyname(ev->button), keystatename(ev->state), input_map->axes[ev->button].value);
+	
 	uint32_t cmd = 0;
 	if (user_actions[ev->button].cmd[keystate_repeated][emodkey_unknown] && ev->state == keystate_pressed)
 	{
@@ -1031,6 +1032,9 @@ void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue)
 		return;
 
 	user_input_map *input_map = top_input_map_in_stack(user.input_map_stack);
+	if (!input_map)
+		return;
+
 	input_map->axes[inaxis].value = invalue;
 }
 

@@ -20,6 +20,11 @@ int main()
 		printf("player one initialization failed.\n");
 		return -1;
 	}
+	if (!player_two_init_input())
+	{
+		printf("player two initialization failed.\n");
+		return -1;
+	}
 
 	mem_display_info();
 
