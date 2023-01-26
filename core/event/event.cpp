@@ -1,6 +1,26 @@
 #include "event.h"
 #include "../../common.h"
 
+
+/*************************************
+*     FILE CONTENT
+
+1- EVENT QUEUE IMPL
+2- HLEPER FUNCTION
+3- INPUT DEBUGGING STUFF
+4- USERINPUT.h IMPL
+   A- USER INPUT MAP STACK IMPL
+5- EVENT TYPE HANDLERS IMPL
+6- EVENT.h IMPL
+
+*************************************/
+
+
+
+
+/***************************************
+*        BEGIN: EVENT QUEUE IMPL       *
+****************************************/
 #define EVENT_COUNT 64
 
 struct eventdef_queue
@@ -48,6 +68,9 @@ void      clear_event_queue(eventdef_queue* queue)
 	queue->get_idx = 0;
 	memset(queue->events, 0, sizeof(eventdef) * EVENT_COUNT);
 }
+/***************************************
+*        BEGIN: EVENT QUEUE IMPL       *
+****************************************/
 
 //struct key_detail
 //{
@@ -301,14 +324,14 @@ struct key_action_def
 
 struct key_axis_def
 {
-	uint16_t cmd;
 	float    value;
+	uint16_t cmd;
 };
 
 struct user_input_map
 {
-	key_action_def  actions[KEY_COUNT];
 	key_axis_def    axes[KEY_COUNT];
+	key_action_def  actions[KEY_COUNT];
 	key_handler_def handlers[CMD_COUNT];
 };
 
