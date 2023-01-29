@@ -270,6 +270,7 @@ struct user_input_map
 	key_axis_def    axes[KEY_COUNT];
 	key_action_def  actions[KEY_COUNT];
 	key_handler_def handlers[CMD_COUNT];
+	uint8_t id = 0;
 };
 
 struct user_input_map_stack
@@ -381,12 +382,45 @@ void mouse_get_pos(float* outx, float* outy)
 		*outy = mouse_y;
 }
 
+user_input_map* find_user_input_map(uint8_t in_user_idx, uint8_t in_input_map_id)
+{
+	if (!users || in_user_idx > 3 || in_user_idx < 0)
+		return nullptr;
+
+	user_input_map* input_map = nullptr;
+	
+	user_input_map* input_map_array = users->user_input_map_stack[in_user_idx].input_maps;
+	for (uint8_t idx = 0; idx < INPUT_MAP_COUNT; ++idx)
+	{
+		if (input_map_array[idx].id == in_input_map_id)
+		{
+			input_map = &input_map_array[idx];
+			break;
+		}
+	}
+
+	return input_map;
+}
+
 user_input_map* create_user_input_map()
 {
 	return (user_input_map*)mem_alloc("struct: user_input_map", sizeof(user_input_map));
 }
 
-bool push_input_map(uint8_t ininputuser, user_input_map* input_map)
+void remap_input_map(uint8_t in_user_idx, uint8_t in_des_input_map_id, user_input_map* in_src_input_map)
+{
+	user_input_map* des_input_map = find_user_input_map(in_user_idx, in_des_input_map_id);
+	if (!des_input_map)
+		return;
+
+	//uint8_t des_input_map_id = des_input_map->id;
+
+	memcpy(des_input_map, in_src_input_map, sizeof(user_input_map) - sizeof(uint8_t)); // - sizeof(uint8_t) to not overwrite it id value
+
+	//des_input_map->id = des_input_map_id;
+}
+
+bool push_input_map(uint8_t ininputuser, uint8_t in_input_map_id, user_input_map* input_map)
 {
 	if (ininputuser > 3 || ininputuser < 0)
 		return false;
@@ -394,6 +428,7 @@ bool push_input_map(uint8_t ininputuser, user_input_map* input_map)
 	if (!users || !input_map)
 		return false;
 
+	input_map->id = in_input_map_id;
 	add_input_map_to_stack(&users->user_input_map_stack[ininputuser], input_map);
 
 	return true;

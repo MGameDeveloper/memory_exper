@@ -17,8 +17,9 @@ enum einputuser
 // defined in event.cpp
 struct user_input_map;
 extern user_input_map* create_user_input_map();
-extern bool push_input_map(uint8_t ininputuser, user_input_map* input_map);
+extern bool push_input_map(uint8_t ininputuser, uint8_t in_input_map_id, user_input_map* input_map);
 extern void pop_input_map(uint8_t ininputuser);
+extern void remap_input_map(uint8_t in_user_idx, uint8_t in_des_input_map_id, user_input_map* in_src_input_map);
 
 extern void bind_action_msg(user_input_map* input_map, int16_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmods = emodkey_unknown);
 extern void bind_axis_msg(user_input_map* input_map, int16_t inkey, uint16_t inmsgid, float inaxisvalue = 0.f, uint8_t inmods = emodkey_unknown);
