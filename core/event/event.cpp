@@ -6,12 +6,11 @@
 *     FILE CONTENT
 
 1- EVENT QUEUE IMPL
-2- HLEPER FUNCTION
-3- INPUT DEBUGGING STUFF
-4- USERINPUT.h IMPL
+2- INPUT DEBUGGING STUFF
+3- USERINPUT.h IMPL
    A- USER INPUT MAP STACK IMPL
-5- EVENT TYPE HANDLERS IMPL
-6- EVENT.h IMPL
+4- EVENT TYPE HANDLERS IMPL
+5- EVENT.h IMPL
 
 *************************************/
 
@@ -72,47 +71,8 @@ void      clear_event_queue(eventdef_queue* queue)
 *        BEGIN: EVENT QUEUE IMPL       *
 ****************************************/
 
-//struct key_detail
-//{
-//	float  timestamp = 0.0f;
-//	float  value     = 0.0f;
-//	int8_t state     = keystate_unknown;
-//	int8_t mods      = emodkey_unknown;
-//};
-//
-//static Queue *user_eventqueue[4];
-//static Array *users_keydetail[4];
 static float  mouse_x = 0.0f;
 static float  mouse_y = 0.0f;
-
-/***************************************
-*         BEGIN: HELPER FUNCTION       *
-****************************************/
-//key_detail* keydetail_get(int8_t inuseridx, int16_t inkey)
-//{
-//	if (inuseridx > 3 || inuseridx < 0)
-//		return nullptr;
-//
-//	Array* user_kd = users_keydetail[inuseridx];
-//
-//	if (!user_kd)
-//		return nullptr;
-//
-//	return (key_detail*)array_get(user_kd, inkey);
-//}
-//
-//void key_setvalue(int8_t inuseridx, int16_t inkey, float invalue)
-//{
-//	key_detail* kd = keydetail_get(inuseridx, inkey);
-//
-//	if (!kd)
-//		return;
-//
-//	kd->value = invalue;
-//}
-/***************************************
-*         END: HELPER FUNCTION         *
-****************************************/
 
 
 /**************************************
@@ -278,29 +238,6 @@ void input_debugging_stuff_init()
 /***************************************
 *   BEGIN: USERINPUT.h HEADER IMPL     *
 ****************************************/
-//struct actionmsgdef
-//{
-//	uint16_t msg[keystate_count][emodkey_count];
-//};
-//
-//struct axismsgdef
-//{
-//	uint16_t msg[emodkey_count];
-//};
-//
-//struct msghandlerdef
-//{
-//	union handlerdef
-//	{
-//		void(*axis_handler)(float) = nullptr;
-//		void(*action_handler)();
-//	} handler;
-//};
-//
-//Array *user_actionlayout[4];
-//Array *user_axislayout[4];
-//Array *user_inputhandlers[4];
-
 
 #define USER_COUNT 4
 #define KEY_COUNT ek_count 
@@ -398,10 +335,6 @@ struct users_input_def
 	eventdef_queue       user_event_queue[USER_COUNT];
 	uint8_t              user_keys_state[USER_COUNT][KEY_COUNT];
 	uint8_t              user_keys_mods[USER_COUNT][KEY_COUNT];
-	//float                user_key_value[USER_COUNT][KEY_COUNT];
-	//key_handler_def      user_handlers[USER_COUNT][CMD_COUNT];
-	//key_action_def  user_actions[USER_COUNT][KEY_COUNT];
-	//key_axis_def    user_axes[USER_COUNT][KEY_COUNT];
 };
 users_input_def* users = nullptr;
 
@@ -412,10 +345,6 @@ struct user_input_def_return
 	uint8_t              *keys_mods       = nullptr;	
 	user_input_map_stack *input_map_stack = nullptr;
 	eventdef_queue       *event_queue     = nullptr;
-	//float                *keys_value           = nullptr;
-	//key_handler_def      *cmds_handlers        = nullptr;
-	//key_action_def  *keys_actions   = nullptr;
-	//key_axis_def    *keys_axes      = nullptr;
 };
 
 user_input_def_return get_user_input_detail(uint8_t in_user_idx)
@@ -430,10 +359,6 @@ user_input_def_return get_user_input_detail(uint8_t in_user_idx)
 	user_input.keys_mods        = users->user_keys_mods[in_user_idx];
 	user_input.input_map_stack  = &users->user_input_map_stack[in_user_idx];
 	user_input.event_queue      = &users->user_event_queue[in_user_idx];
-	//user_input.keys_value       = users->user_key_value[in_user_idx];
-	//user_input.cmds_handlers        = users->user_handlers[in_user_idx];
-	//user_input.keys_actions   = users->user_actions[in_user_idx];
-	//user_input.keys_axes      = users->user_axes[in_user_idx];
 
 	return user_input;
 }
@@ -472,42 +397,6 @@ bool push_input_map(uint8_t ininputuser, user_input_map* input_map)
 	add_input_map_to_stack(&users->user_input_map_stack[ininputuser], input_map);
 
 	return true;
-
-	//Array *imd_actionlayout = user_actionlayout[ininputuser];
-	//Array *img_axislayout   = user_axislayout[ininputuser];
-	//Array *mhd              = user_inputhandlers[ininputuser];
-	//
-	//if (img_axislayout || imd_actionlayout || mhd)
-	//	return;
-	//
-	//const char* array_name = nullptr;
-	//
-	//switch (ininputuser)
-	//{
-	//case 0: array_name = "array_actionmap_user_0"; break;
-	//case 1: array_name = "array_actionmap_user_1"; break;
-	//case 2: array_name = "array_actionmap_user_2"; break;
-	//case 3: array_name = "array_actionmap_user_3"; break;
-	//}
-	//user_actionlayout[ininputuser]  = array_create(array_name, ek_count, sizeof(actionmsgdef));
-	//
-	//switch (ininputuser)
-	//{
-	//case 0: array_name = "array_axismap_user_0"; break;
-	//case 1: array_name = "array_axismap_user_1"; break;
-	//case 2: array_name = "array_axismap_user_2"; break;
-	//case 3: array_name = "array_axismap_user_3"; break;
-	//}
-	//user_axislayout[ininputuser]    = array_create(array_name, ek_count, sizeof(axismsgdef));
-	//
-	//switch (ininputuser)
-	//{
-	//case 0: array_name = "array_msghandler_user_0"; break;
-	//case 1: array_name = "array_msghandler_user_1"; break;
-	//case 2: array_name = "array_msghandler_user_2"; break;
-	//case 3: array_name = "array_msghandler_user_3"; break;
-	//}
-	//user_inputhandlers[ininputuser] = array_create(array_name, inmsgcount, sizeof(msghandlerdef));
 }
 
 void pop_input_map(uint8_t ininputuser)
@@ -523,16 +412,6 @@ void pop_input_map(uint8_t ininputuser)
 
 void bind_action_msg(user_input_map* input_map, int16_t inkey, uint8_t inkeystate, uint16_t inmsgid, uint8_t inmods)
 {
-	//Array* actions = user_actionlayout[ininputuser];
-	//if (!actions)
-	//	return;
-	//
-	//actionmsgdef* msgdef = (actionmsgdef*)array_get(actions, inkey);
-	//if (!msgdef)
-	//	return;
-	//
-	//msgdef->msg[inkeystate][inmods] = inmsgid;
-
 	if (!input_map)
 		return;
 
@@ -541,22 +420,8 @@ void bind_action_msg(user_input_map* input_map, int16_t inkey, uint8_t inkeystat
 
 void bind_axis_msg(user_input_map* input_map, int16_t inkey, uint16_t inmsgid, float inaxisvalue, uint8_t inmods)
 {
-	//Array* axes = user_axislayout[ininputuser];
-	//if (!axes)
-	//	return;
-	//
-	//axismsgdef* msgdef = (axismsgdef*)array_get(axes, inkey);
-	//if (!msgdef)
-	//	return;
-	//
-	//msgdef->msg[inmods] = inmsgid;
-	//key_setvalue(ininputuser, inkey, inaxisvalue);
-
 	if (!input_map)
 		return;
-
-	/*input_map->axes[inkey].cmd[inmods]   = inmsgid;
-	input_map->axes[inkey].value[inmods] = inaxisvalue;*/
 
 	input_map->axes[inkey].cmd   = inmsgid;
 	input_map->axes[inkey].value = inaxisvalue;
@@ -564,16 +429,6 @@ void bind_axis_msg(user_input_map* input_map, int16_t inkey, uint16_t inmsgid, f
 
 void bind_action_handler(user_input_map* input_map, uint16_t inmsgid, void(*action_handler)())
 {
-	//Array* handlers = user_inputhandlers[ininputuser];
-	//if (!handlers)
-	//	return;
-	//
-	//msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
-	//if (!handlerdef)
-	//	return;
-	//
-	//handlerdef->handler.action_handler = action_handler;
-
 	if (!input_map)
 		return;
 
@@ -582,16 +437,6 @@ void bind_action_handler(user_input_map* input_map, uint16_t inmsgid, void(*acti
 
 void bind_axis_handler(user_input_map* input_map, uint16_t inmsgid, void(*axis_handler)(float))
 {
-	//Array* handlers = user_inputhandlers[ininputuser];
-	//if (!handlers)
-	//	return;
-	//
-	//msghandlerdef* handlerdef = (msghandlerdef*)array_get(handlers, inmsgid);
-	//if (!handlerdef)
-	//	return;
-	//
-	//handlerdef->handler.axis_handler = axis_handler;
-
 	if (!input_map)
 		return;
 
@@ -601,7 +446,6 @@ void bind_axis_handler(user_input_map* input_map, uint16_t inmsgid, void(*axis_h
 void process_axes()
 {
 	user_input_def_return user;
-	int8_t                useridx = 0;
 	user_input_map*       input_map = nullptr;
 	uint32_t              input_map_idx = 0;
 	int8_t                key_mod = 0;
@@ -610,9 +454,9 @@ void process_axes()
 	uint32_t              cmd = 0;
 	float                 value = 0.0f;
 
-	for (int32_t user_idx = 0; user_idx < USER_COUNT; ++user_idx)
+	for (int8_t user_idx = 0; user_idx < USER_COUNT; ++user_idx)
 	{
-		user = get_user_input_detail(useridx);
+		user = get_user_input_detail(user_idx);
 
 		if (!is_user_return_valid(&user))
 			continue;
@@ -640,73 +484,6 @@ void process_axes()
 			}
 		}
 	}
-
-	//Array* user_axes = nullptr;
-    //Array* user_keydetail = nullptr;
-    //Array* user_handlers = nullptr;
-    //axismsgdef* axismsg = nullptr;
-    //key_detail* kd = nullptr;
-    //msghandlerdef* msghandler = nullptr;
-	//while (useridx < 4)
-	//{
-	//	//user_axes = user_axislayout[useridx];
-	//	//user_keydetail = users_keydetail[useridx];
-	//	//user_handlers = user_inputhandlers[useridx];
-	//
-	//	//if (!user_axes || !user_keydetail || !user_handlers)
-	//		//continue;
-	//
-	//	user = get_user_input_detail(useridx);
-	//	if (!is_user_return_valid(&user))
-	//	{
-	//	    ++useridx;
-	//		continue;
-	//	}
-	//
-	//	input_map_idx = user.input_map_stack->idx - 1;
-	//	if (input_map_idx < 0)
-	//		continue;
-	//	input_map = &user.input_map_stack->input_maps[input_map_idx];
-	//
-	//	for (int32_t key = 0; key < ek_count; ++key)
-	//	{
-	//
-	//		//axismsg = (axismsgdef*)array_get(user_axes, key);
-	//
-	//		//if (!axismsg)
-	//			//continue;
-	//
-	//		//kd = (key_detail*)array_get(user_keydetail, key);
-	//
-	//		//if (!kd)
-	//			//continue;
-	//
-	//		//if (kd->state <= keystate_released)
-	//			//continue;
-	//
-	//		key_state = user.keys_state[ek_count];
-	//		if (key_state <= keystate_released)
-	//			continue;
-	//
-	//		key_mod = user.keys_mods[ek_count];
-	//		value   = user.keys_value[key];
-	//		cmd     = input_map->axes[key].cmd;
-	//
-	//		handler = input_map->handlers[cmd];
-	//		if (handler.axis)
-	//		{
-	//			handler.axis(value);
-	//		}
-	//
-	//		//msghandler = (msghandlerdef*)array_get(user_handlers, axismsg->msg[kd->mods]);
-	//		//if (msghandler && msghandler->handler.axis_handler)
-	//		//{
-	//		//	msghandler->handler.axis_handler(kd->value);
-	//		//}
-	//	}
-	//
-	//	++useridx;
-	//}
 }
 
 /***************************************
@@ -725,33 +502,6 @@ void kboard_event_handler(uint8_t useridx, eventdef* inev)
 {
 	if (!inev)
 		return;
-
-	//event_kboard* ev = &inev->kboard;
-	//
-	//
-	//Array         *user_actions  = user_actionlayout[useridx];
-	//Array         *user_handlers = user_inputhandlers[useridx];
-	//actionmsgdef  *actionmsg     = nullptr;
-	//msghandlerdef *msghandler    = nullptr;
-	//uint16_t       msg           = 0;
-	//
-	//if (user_actions && user_handlers)
-	//{
-	//	actionmsg = (actionmsgdef*)array_get(user_actions, ev->key);
-	//	if (actionmsg)
-	//	{
-	//		if (actionmsg->msg[keystate_repeated][ev->mods] && ev->state == keystate_pressed)
-	//			msg = actionmsg->msg[keystate_repeated][ev->mods];
-	//		else
-	//			msg = actionmsg->msg[ev->state][ev->mods];
-	//
-	//		msghandler = (msghandlerdef*)array_get(user_handlers, msg);
-	//		if (msghandler && msghandler->handler.action_handler)
-	//		{
-	//			msghandler->handler.action_handler();
-	//		}
-	//	}
-	//}
 
 	event_kboard* ev = &inev->kboard;
 	
@@ -803,37 +553,6 @@ void mouse_event_handler(uint8_t useridx, eventdef* inev)
 
 void gpad_event_handler(uint8_t useridx, eventdef* inev)
 {
-	//if (!inev)
-	//	return;
-	//
-	//event_gpad* ev = &inev->gpad;
-	//
-	//printf("Controller[ %d ]: %s | %s \n", useridx, keyname(ev->button), keystatename(ev->state)/*, ev->value*/);
-	//
-	//Array* user_actions = user_actionlayout[useridx];
-	//Array* user_handlers = user_inputhandlers[useridx];
-	//actionmsgdef* actionmsg = nullptr;
-	//msghandlerdef* msghandler = nullptr;
-	//uint16_t       msg = 0;
-	//
-	//if (user_actions && user_handlers)
-	//{
-	//	actionmsg = (actionmsgdef*)array_get(user_actions, ev->button);
-	//	if (actionmsg)
-	//	{
-	//		if (actionmsg->msg[keystate_repeated][emodkey_unknown] && ev->state == keystate_pressed)
-	//			msg = actionmsg->msg[keystate_repeated][emodkey_unknown];
-	//		else
-	//			msg = actionmsg->msg[ev->state][emodkey_unknown];
-	//
-	//		msghandler = (msghandlerdef*)array_get(user_handlers, msg);
-	//		if (msghandler && msghandler->handler.action_handler)
-	//		{
-	//			msghandler->handler.action_handler();
-	//		}
-	//	}
-	//}
-
 	event_gpad* ev = &inev->gpad;
 
 
@@ -878,24 +597,6 @@ void gpad_event_handler(uint8_t useridx, eventdef* inev)
 ****************************************/
 bool event_init()
 {
-	//user_eventqueue[0] = queue_create("array_eventqueue_user0", 64, sizeof(eventdef));
-	//user_eventqueue[1] = queue_create("array_eventqueue_user1", 64, sizeof(eventdef));
-	//user_eventqueue[2] = queue_create("array_eventqueue_user2", 64, sizeof(eventdef));
-	//user_eventqueue[3] = queue_create("array_eventqueue_user3", 64, sizeof(eventdef));
-	//
-	//users_keydetail[0] = array_create("array_keydetail_user0", 256, sizeof(key_detail));
-	//users_keydetail[1] = array_create("array_keydetail_user1", 256, sizeof(key_detail));
-	//users_keydetail[2] = array_create("array_keydetail_user2", 256, sizeof(key_detail));
-	//users_keydetail[3] = array_create("array_keydetail_user3", 256, sizeof(key_detail));
-	//
-	//for (int32_t useridx = 0; useridx < 4; ++useridx)
-	//{
-	//	if (!users_keydetail[useridx] || !user_eventqueue[useridx])
-	//	{
-	//		return false;
-	//	}
-	//}
-
 	users = (users_input_def*)mem_alloc("users_input_details", sizeof(users_input_def));
 
 	eventtype_handlers[eventtype_kboard] = kboard_event_handler;
@@ -909,30 +610,6 @@ bool event_init()
 
 void onevent_kboard(int16_t inkey, int8_t instate, int8_t inmods)
 {
-	//if (inuserid < 0 || inuserid > 3)
-	//	return;
-	//
-	//Queue   *ev_queue = user_eventqueue[inuserid];
-	//key_detail *kd    = keydetail_get(inuserid, inkey);
-	//
-	//if (!kd)
-	//	return;
-	//
-	//kd->state     = instate;
-	//kd->mods      = inmods;
-	//kd->timestamp = time_get_seconds();
-	//
-	//if (!ev_queue)
-	//	return;
-	//
-	//eventdef ev;
-	//ev.type         = eventtype_kboard;
-	//ev.kboard.key   = inkey;
-	//ev.kboard.state = instate;
-	//ev.kboard.mods  = inmods;
-	//
-	//queue_add(ev_queue, &ev);
-
 	user_input_def_return user = get_user_input_detail(0);
 	if (!is_user_return_valid(&user))
 		return;
@@ -952,32 +629,6 @@ void onevent_kboard(int16_t inkey, int8_t instate, int8_t inmods)
 
 void onevent_mouse_button(int16_t inbutton, int8_t instate, int8_t inmods)
 {
-	//if (inuserid < 0 || inuserid > 3)
-	//	return;
-	//
-	//Queue      *ev_queue = user_eventqueue[inuserid];
-	//key_detail *kd       = keydetail_get(inuserid, inbutton);
-	//
-	//if (!kd)
-	//	return;
-	//
-	//double timestamp = 
-	//
-	//kd->state     = instate;
-	//kd->mods      = inmods;
-	//kd->timestamp = time_get_seconds();
-	//
-	//if (!ev_queue)
-	//	return;
-	//
-	//eventdef ev;
-	//ev.type         = eventtype_mouse;
-	//ev.mouse.button = inbutton;
-	//ev.mouse.state  = kd->state;
-	//ev.mouse.mods   = kd->mods;
-	//
-	//queue_add(ev_queue, &ev);
-
 	user_input_def_return user = get_user_input_detail(0);
 	if (!is_user_return_valid(&user))
 		return;
@@ -997,29 +648,6 @@ void onevent_mouse_button(int16_t inbutton, int8_t instate, int8_t inmods)
 
 void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate)
 {
-	//if (inuserid < 0 || inuserid > 3)
-	//	return;
-	//
-	//Queue* ev_queue = user_eventqueue[inuserid];
-	//key_detail* kd = keydetail_get(inuserid, inbutton);
-	//
-	//if (!kd)
-	//	return;
-	//
-	//kd->state = instate;
-	//kd->timestamp = time_get_seconds();
-	//
-	//if (!ev_queue)
-	//	return;
-	//
-	//eventdef ev;
-	//ev.type        = eventtype_gpad;
-	//ev.gpad.button = inbutton;
-	//ev.gpad.state  = instate;
-	//ev.gpad.userid = inuserid;
-	//
-	//queue_add(ev_queue, &ev);
-
 	user_input_def_return user = get_user_input_detail(inuserid);
 	if (!is_user_return_valid(&user))
 		return;
@@ -1038,18 +666,6 @@ void onevent_gpad_button(int8_t inuserid, int16_t inbutton, int8_t instate)
 
 void onevent_gpad_axis(int8_t inuserid, int16_t inaxis, float invalue)
 {
-	//if (inuserid < 0 || inuserid > 3)
-	//	return;
-	//
-	////Queue* ev_queue = user_eventqueue[inuserid];
-	//key_detail* kd = keydetail_get(inuserid, inaxis);
-	//
-	//if (!kd)
-	//	return;
-	//
-	//kd->value = invalue;
-	//user.keys_value[inaxis] = invalue;
-
 	user_input_def_return user = get_user_input_detail(inuserid);
 	if (!is_user_return_valid(&user))
 		return;
@@ -1069,39 +685,6 @@ void onevent_mouse_move(float inx, float iny)
 
 void event_process()
 {
-	//process_axes();
-	//
-	//eventdef      *ev         = nullptr;
-	//event_handler  ev_handler = nullptr;
-	//Queue         *ev_queue   = nullptr;
-	//
-	//for (uint8_t queueidx = 0; queueidx < 4; ++queueidx)
-	//{
-	//	ev_queue = user_eventqueue[queueidx];
-	//
-	//	if (!ev_queue)
-	//		return;
-	//	
-	//	while (queue_size(ev_queue))
-	//	{
-	//		ev = (eventdef*)queue_get(ev_queue);
-	//
-	//		if (!ev)
-	//			return;
-	//
-	//		if (ev->type == eventtype_unknown || ev->type > eventtype_count - 1)
-	//			return;
-	//
-	//		ev_handler = event_handlers[ev->type];
-	//		if (ev_handler)
-	//		{
-	//			ev_handler(queueidx, ev);
-	//		}
-	//	}
-	//
-	//	queue_clear(ev_queue);
-	//}
-
 	process_axes();
 
 	user_input_def_return  user;
