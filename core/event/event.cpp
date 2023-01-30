@@ -242,7 +242,7 @@ void input_debugging_stuff_init()
 #define USER_COUNT 4
 #define KEY_COUNT ek_count 
 #define CMD_COUNT ek_count
-#define INPUT_MAP_COUNT 3
+#define INPUT_MAP_COUNT 10
 
 
 /***************************************
@@ -270,12 +270,11 @@ struct user_input_map
 	key_axis_def    axes[KEY_COUNT];
 	key_action_def  actions[KEY_COUNT];
 	key_handler_def handlers[CMD_COUNT];
-	uint8_t id = 0;
 };
 
 struct user_input_map_stack
 {
-	user_input_map input_maps[INPUT_MAP_COUNT];
+	user_input_map* input_maps[INPUT_MAP_COUNT];
 	int8_t idx = 0;
 };
 
@@ -291,7 +290,8 @@ void add_input_map_to_stack(user_input_map_stack* stack, user_input_map* input_m
 		stack->idx = 0;
 
 	int32_t idx = stack->idx++;
-	memcpy(&stack->input_maps[idx], input_map, sizeof(user_input_map));
+	//memcpy(&stack->input_maps[idx], input_map, sizeof(user_input_map));
+	stack->input_maps[idx] = input_map;
 }
 void remove_top_input_map_from_stack(user_input_map_stack* stack)
 {
@@ -312,7 +312,7 @@ user_input_map* top_input_map_in_stack(user_input_map_stack* stack)
 	if (idx < 0)
 		return nullptr;
 
-	return &stack->input_maps[idx];
+	return stack->input_maps[idx];
 }
 bool is_input_map_stack_empty(user_input_map_stack* stack)
 {
@@ -323,7 +323,9 @@ void clear_input_map_stack(user_input_map_stack* stack)
 	if (!stack)
 		return;
 
-	memset(stack, 0, sizeof(user_input_map) * INPUT_MAP_COUNT);
+	//memset(stack, 0, sizeof(user_input_map) * INPUT_MAP_COUNT);
+	for (uint8_t idx = 0; idx < INPUT_MAP_COUNT; ++idx)
+		stack->input_maps[idx] = nullptr;
 }
 /***************************************
 *   END: USER INPUT MAP STACK IMPL     *
@@ -352,7 +354,7 @@ user_input_def_return get_user_input_detail(uint8_t in_user_idx)
 {
 	user_input_def_return user_input;
 
-	if (!users || in_user_idx > 3)
+	if (!users || in_user_idx >= USER_COUNT || in_user_idx < 0)
 		return user_input;
 
 	user_input.keys_timestamp   = users->user_key_timestamp[in_user_idx];
@@ -382,45 +384,12 @@ void mouse_get_pos(float* outx, float* outy)
 		*outy = mouse_y;
 }
 
-user_input_map* find_user_input_map(uint8_t in_user_idx, uint8_t in_input_map_id)
+user_input_map* create_user_input_map(const char* in_input_map_name)
 {
-	if (!users || in_user_idx > 3 || in_user_idx < 0)
-		return nullptr;
-
-	user_input_map* input_map = nullptr;
-	
-	user_input_map* input_map_array = users->user_input_map_stack[in_user_idx].input_maps;
-	for (uint8_t idx = 0; idx < INPUT_MAP_COUNT; ++idx)
-	{
-		if (input_map_array[idx].id == in_input_map_id)
-		{
-			input_map = &input_map_array[idx];
-			break;
-		}
-	}
-
-	return input_map;
+	return (user_input_map*)mem_alloc(in_input_map_name, sizeof(user_input_map));
 }
 
-user_input_map* create_user_input_map()
-{
-	return (user_input_map*)mem_alloc("struct: user_input_map", sizeof(user_input_map));
-}
-
-void remap_input_map(uint8_t in_user_idx, uint8_t in_des_input_map_id, user_input_map* in_src_input_map)
-{
-	user_input_map* des_input_map = find_user_input_map(in_user_idx, in_des_input_map_id);
-	if (!des_input_map)
-		return;
-
-	//uint8_t des_input_map_id = des_input_map->id;
-
-	memcpy(des_input_map, in_src_input_map, sizeof(user_input_map) - sizeof(uint8_t)); // - sizeof(uint8_t) to not overwrite it id value
-
-	//des_input_map->id = des_input_map_id;
-}
-
-bool push_input_map(uint8_t ininputuser, uint8_t in_input_map_id, user_input_map* input_map)
+bool push_input_map(uint8_t ininputuser, user_input_map* input_map)
 {
 	if (ininputuser > 3 || ininputuser < 0)
 		return false;
@@ -428,7 +397,6 @@ bool push_input_map(uint8_t ininputuser, uint8_t in_input_map_id, user_input_map
 	if (!users || !input_map)
 		return false;
 
-	input_map->id = in_input_map_id;
 	add_input_map_to_stack(&users->user_input_map_stack[ininputuser], input_map);
 
 	return true;
@@ -492,31 +460,33 @@ void process_axes()
 	for (int8_t user_idx = 0; user_idx < USER_COUNT; ++user_idx)
 	{
 		user = get_user_input_detail(user_idx);
-
 		if (!is_user_return_valid(&user))
 			continue;
 
-
-		input_map_idx = user.input_map_stack->idx - 1;
-		if (input_map_idx < 0)
-			continue;
-		input_map = &user.input_map_stack->input_maps[input_map_idx];
-
-		for (int32_t key = 0; key < ek_count; ++key)
+		for (int8_t input_map_idx = user.input_map_stack->idx - 1; input_map_idx >= 0; --input_map_idx)
 		{
-			key_state = user.keys_state[key];
-			if (key_state <= keystate_released)
+			input_map = user.input_map_stack->input_maps[input_map_idx];
+			if (!input_map)
 				continue;
 
-			key_mod = user.keys_mods[key];
-			cmd     = input_map->axes[key].cmd;
-			value   = input_map->axes[key].value;
-
-			handler = input_map->handlers[cmd];
-			if (handler.axis)
+			for (int32_t key = 0; key < ek_count; ++key)
 			{
-				handler.axis(value);
+				key_state = user.keys_state[key];
+				if (key_state <= keystate_released)
+					continue;
+
+				key_mod = user.keys_mods[key];
+				cmd     = input_map->axes[key].cmd;
+				value   = input_map->axes[key].value;
+
+				handler = input_map->handlers[cmd];
+				if (handler.axis)
+				{
+					handler.axis(value);
+				}
 			}
+
+			// break if current input map block other input map from consuming the events
 		}
 	}
 }
